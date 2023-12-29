@@ -276,6 +276,22 @@ class ProclaimInstance extends InstanceBase {
 				isVisible: (configValues) => configValues.ip !== '127.0.0.1',
 				required: true,
 			},
+			{
+				type: 'static-text',
+				id: 'experimental-intro',
+				label: '',
+				value: `<p>Tick the box below to enable additional experimental features which rely on unpublished Proclaim APIs.
+				These features enhance the functionality of the module, but may stop working if these APIs are changed within
+				Proclaim. Use at your own risk.</p>`,
+				width: 12,
+			},
+			{
+				type: 'checkbox',
+				id: 'experimental-api',
+				label: 'Enable experimental features?',
+				default: false,
+				width: 6,
+			},
 		]
 	}
 
