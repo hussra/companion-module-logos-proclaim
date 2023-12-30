@@ -3,7 +3,7 @@
 	"name": "logos-proclaim",
 	"shortname": "Proclaim",
 	"description": "Module for Logos Proclaim",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-logos-proclaim.git",
 	"bugs": "https://github.com/bitfocus/companion-module-logos-proclaim/issues",
