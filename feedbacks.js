@@ -11,7 +11,7 @@ export const UpdateFeedbacks = async function (self) {
 				color: combineRgb(0, 0, 0),
 			},
 			callback: () => {
-				return self.on_air
+				return self.proclaimAPI.on_air
 			},
 		},
 	})

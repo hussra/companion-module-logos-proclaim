@@ -1,12 +1,14 @@
+import { song_parts } from './refdata.js'
+
 export const UpdateActions = function (self) {
 	let actions = {
 		on_air_toggle: {
 			name: 'Toggle On Air',
 			callback: async () => {
-				if (self.on_air) {
-					self.sendAppCommand('GoOffAir')
+				if (self.proclaimAPI.on_air) {
+					self.proclaimAPI.sendAppCommand('GoOffAir')
 				} else {
-					self.sendAppCommand('GoOnAir')
+					self.proclaimAPI.sendAppCommand('GoOnAir')
 				}
 			},
 		},
@@ -24,7 +26,7 @@ export const UpdateActions = function (self) {
 				},
 			],
 			callback: async (event) => {
-				self.sendAppCommand('GoToServiceItem', event.options.num)
+				self.proclaimAPI.sendAppCommand('GoToServiceItem', event.options.num)
 			},
 		},
 
@@ -41,7 +43,7 @@ export const UpdateActions = function (self) {
 				},
 			],
 			callback: async (event) => {
-				self.sendAppCommand('GoToSlide', event.options.num)
+				self.proclaimAPI.sendAppCommand('GoToSlide', event.options.num)
 			},
 		},
 
@@ -53,7 +55,7 @@ export const UpdateActions = function (self) {
 					id: 'song_part',
 					label: 'Song Part',
 					default: 0,
-					choices: self.song_parts,
+					choices: song_parts,
 				},
 				{
 					id: 'item_index',
@@ -65,8 +67,8 @@ export const UpdateActions = function (self) {
 				},
 			],
 			callback: async (event) => {
-				const part = self.song_parts[event.options.song_part].label
-				self.sendAppCommand(`ShowSongLyrics${part}ByIndex`, event.options.item_index)
+				const part = song_parts[event.options.song_part].label
+				self.proclaimAPI.sendAppCommand(`ShowSongLyrics${part}ByIndex`, event.options.item_index)
 			},
 		},
 	}
@@ -135,7 +137,7 @@ export const UpdateActions = function (self) {
 		},
 	]
 
-	// Song Parts
+	// Add simple actions
 	for (var action in simpleActions) {
 		let id = simpleActions[action].id
 		let name = simpleActions[action].name
@@ -143,7 +145,7 @@ export const UpdateActions = function (self) {
 		actions[id] = {
 			name: name,
 			callback: async () => {
-				self.sendAppCommand(appCommand)
+				self.proclaimAPI.sendAppCommand(appCommand)
 			},
 		}
 	}

@@ -1,3 +1,4 @@
+import { song_parts } from './refdata.js'
 import { combineRgb } from '@companion-module/base'
 
 export const UpdatePresets = async function (self) {
@@ -143,19 +144,19 @@ export const UpdatePresets = async function (self) {
 	}
 
 	// Song Parts
-	for (var part in self.song_parts) {
-		if (self.song_parts[part].label == 'Verse') {
+	for (var part in song_parts) {
+		if (song_parts[part].label == 'Verse') {
 			for (var v = 1; v < 10; v++) {
-				const id = `song_part_${self.song_parts[part].path}_${v}`
+				const id = `song_part_${song_parts[part].path}_${v}`
 				presets[id] = {
 					type: 'button',
 					category: 'Song Parts',
-					name: `${self.song_parts[part].label} ${v}`,
+					name: `${song_parts[part].label} ${v}`,
 					style: {
 						...style,
-						text: self.song_parts[part].displayLabel
-							? `${self.song_parts[part].displayLabel}\\n${v}`
-							: `${self.song_parts[part].label}\\n${v}`,
+						text: song_parts[part].displayLabel
+							? `${song_parts[part].displayLabel}\\n${v}`
+							: `${song_parts[part].label}\\n${v}`,
 					},
 					steps: [
 						{
@@ -163,7 +164,7 @@ export const UpdatePresets = async function (self) {
 								{
 									actionId: 'go_to_song_part',
 									options: {
-										song_part: self.song_parts[part].id,
+										song_part: song_parts[part].id,
 										item_index: v,
 									},
 								},
@@ -174,14 +175,14 @@ export const UpdatePresets = async function (self) {
 				}
 			}
 		} else {
-			const id = `song_part_${self.song_parts[part].path}`
+			const id = `song_part_${song_parts[part].path}`
 			presets[id] = {
 				type: 'button',
 				category: 'Song Parts',
-				name: self.song_parts[part].label,
+				name: song_parts[part].label,
 				style: {
 					...style,
-					text: self.song_parts[part].displayLabel ? self.song_parts[part].displayLabel : self.song_parts[part].label,
+					text: song_parts[part].displayLabel ? song_parts[part].displayLabel : song_parts[part].label,
 				},
 				steps: [
 					{
@@ -189,7 +190,7 @@ export const UpdatePresets = async function (self) {
 							{
 								actionId: 'go_to_song_part',
 								options: {
-									song_part: self.song_parts[part].id,
+									song_part: song_parts[part].id,
 									item_index: 1,
 								},
 							},
