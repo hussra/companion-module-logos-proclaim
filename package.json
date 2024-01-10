@@ -14,11 +14,11 @@
 		"url": "git+https://github.com/bitfocus/companion-module-logos-proclaim.git"
 	},
 	"dependencies": {
-		"@companion-module/base": "~1.5.1",
+		"@companion-module/base": "~1.7.0",
 		"got": "^12.6.0"
 	},
 	"devDependencies": {
-		"@companion-module/tools": "^1.4.1"
+		"@companion-module/tools": "^1.4.2"
 	},
 	"prettier": "@companion-module/tools/.prettierrc.json"
 }
