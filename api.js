@@ -10,7 +10,6 @@ export class ProclaimAPI {
 
 		this.ip = ''
 		this.password = ''
-		this.experimental_api = false
 
 		this.on_air = false // Is Proclaim "On Air"?
 		this.on_air_session_id = '' // Proclaim On Air Session ID
@@ -19,10 +18,20 @@ export class ProclaimAPI {
 		this.proclaim_auth_required = false // Does Proclaim require authentication for App Commands?
 		this.proclaim_auth_successful = false // Were we able to authenticate to Proclaim?
 		this.proclaim_auth_token = '' // Proclaim authentication token
-		this.presentation_data = {} // Data on the currently on-air presentation
-		this.presentation_local_revision = -1
-		this.connectionId = ''
-		this.authenticationToken = ''
+
+		this.experimental_api = false // Is the experimental API enabled?
+		this.experimental_api_presentation_data = {} // Data on the currently on-air presentation
+		this.experimental_api_presentation_local_revision = -1
+		this.experimental_api_connection_id = ''
+		this.experimental_api_authentication_token = ''
+
+		this.experimental_api_current_currentItem_id = ''
+		this.experimental_api_current_currentItem_title = ''
+		this.experimental_api_current_item_type = ''
+		this.experimental_api_current_item_slide_index = ''
+		this.experimental_api_current_item_slide_count = ''
+		this.experimental_api_current_quick_screen = ''
+		this.experimental_api_current_current_media_state = ''
 	}
 
 	// Called when a new module configuration is supplied. Stash the ip and password, and
@@ -45,7 +54,7 @@ export class ProclaimAPI {
 			this.getAuthToken()
 		}
 
-		this.clearPresentationData()
+		this.experimentalApiClearPresentationData()
 	}
 
 	// When destroying, clear the interval for polling
@@ -111,21 +120,24 @@ export class ProclaimAPI {
 				this.on_air_session_id = data.replace(/^\uFEFF/, '')
 				this.instance.setVariableValues({
 					on_air: true,
+					on_air_session_id: this.on_air_session_id,
 				})
 
 				if (this.experimental_api) {
 					// Get info about the on-air presentation
-					this.getPresentationData()
+					await this.experimentalApiGetPresentationData()
+					await this.experimentalApiGetStatus()
 				}
 			} else {
 				this.on_air = false
 				this.on_air_session_id = ''
 				this.instance.setVariableValues({
 					on_air: false,
+					on_air_session_id: '',
 				})
 
 				if (this.experimental_api) {
-					this.clearPresentationData()
+					this.experimentalApiClearPresentationData()
 				}
 			}
 			this.instance.checkFeedbacks('on_air')
@@ -141,10 +153,11 @@ export class ProclaimAPI {
 			this.on_air = false
 			this.on_air_session_id = ''
 			if (this.experimental_api) {
-				this.clearPresentationData()
+				this.experimentalApiClearPresentationData()
 			}
 			this.instance.setVariableValues({
 				on_air: false,
+				on_air_session_id: '',
 			})
 			this.instance.checkFeedbacks('on_air')
 			this.setModuleStatus()
@@ -188,18 +201,19 @@ export class ProclaimAPI {
 		}
 	}
 
-	clearPresentationData() {
-		this.presentation_data = {}
-		this.presentation_local_revision = -1
+	experimentalApiClearPresentationData() {
+		this.experimental_api_presentation_data = {}
+		this.experimental_api_presentation_local_revision = -1
 		this.instance.setVariableValues({
 			presentation_name: '',
-			connectionId: '',
-			authenticationToken: '',
+			presentation_local_revision: '',
+			connection_id: '',
+			authentication_token: '',
 		})
 	}
 
 	// Obtain data on the current presentation
-	async getPresentationData() {
+	async experimentalApiGetPresentationData() {
 		const url = `http://${this.ip}:52195/presentations/onair`
 		var data
 		try {
@@ -225,13 +239,14 @@ export class ProclaimAPI {
 				.text()
 
 			const parsed = JSON.parse(data.replace(/^\uFEFF/, ''))
-			if (parsed.localRevision != this.presentation_local_revision) {
-				this.presentation_data = parsed
-				this.presentation_local_revision = parsed.localRevision
+			if (parsed.localRevision != this.experimental_api_presentation_local_revision) {
+				this.experimental_api_presentation_data = parsed
+				this.experimental_api_presentation_local_revision = parsed.localRevision
 				this.instance.setVariableValues({
-					presentation_name: this.presentation_data.title,
+					presentation_name: this.experimental_api_presentation_data.title,
+					localRevision: this.experimental_api_presentation_local_revision,
 				})
-				this.getRemoteAuthToken()
+				await this.experimentalApiGetRemoteAuthToken()
 			}
 		} catch (error) {
 			console.log('Error retrieving presentation data: ' + JSON.stringify(error))
@@ -240,8 +255,8 @@ export class ProclaimAPI {
 		}
 	}
 
-	async getRemoteAuthToken() {
-		const url = `http://${this.ip}:52195//auth/control`
+	async experimentalApiGetRemoteAuthToken() {
+		const url = `http://${this.ip}:52195/auth/control`
 
 		var data
 		try {
@@ -271,26 +286,84 @@ export class ProclaimAPI {
 
 			const parsed = JSON.parse(data.replace(/^\uFEFF/, ''))
 
-			this.connectionId = parsed.connectionId
-			this.authenticationToken = parsed.authenticationToken
+			this.experimental_api_connection_id = parsed.connectionId
+			this.experimental_api_authentication_token = parsed.authenticationToken
 
 			// Temporary for debugging
 			this.instance.setVariableValues({
-				connectionId: this.connectionId,
-				authenticationToken: this.authenticationToken,
+				connection_id: this.experimental_api_connection_id,
+				authentication_token: this.experimental_api_authentication_token,
 			})
 
 			console.log('Remote auth response: ' + JSON.stringify(parsed))
 		} catch (error) {
 			console.log('Error getting remote auth: ' + JSON.stringify(error))
-			this.connectionId = ''
-			this.authenticationToken = ''
+			this.experimental_api_connection_id = ''
+			this.experimental_api_authentication_token = ''
 
 			// Temporary for debugging
 			this.instance.setVariableValues({
-				connectionId: this.connectionId,
-				authenticationToken: this.authenticationToken,
+				connection_id: this.experimental_api_connection_id,
+				authentication_token: this.experimental_api_authentication_token,
 			})
+		}
+	}
+
+	async experimentalApiGetStatus() {
+		const url = `http://${this.ip}:52195/onair/statusChanged?localrevision=-9223372036854775808&step=-2147483648`
+
+		var data
+		try {
+			data = await got
+				.get(url, {
+					timeout: {
+						request: 1000,
+					},
+					retry: {
+						limit: 0,
+					},
+					headers: {
+						OnAirSessionId: this.on_air_session_id,
+						ConnectionId: this.experimental_api_connection_id,
+					},
+					hooks: {
+						beforeRequest: [
+							(options) => {
+								options.headers['OnAirSessionId'] = options.headers['onairsessionid']
+								options.headers['ConnectionId'] = options.headers['connectionid']
+							},
+						],
+					},
+				})
+				.text()
+
+			const parsed = JSON.parse(data.replace(/^\uFEFF/, ''))
+
+			this.experimental_api_current_item_id = parsed.status.itemId
+			this.experimental_api_current_item_slide_index = parsed.status.slideIndex
+			this.experimental_api_current_quick_screen = parsed.status.quickScreenKind
+			this.experimental_api_current_current_media_state = parsed.status.mediaState
+
+			const currentItem = this.experimental_api_presentation_data.serviceItems.find(function (item) {
+				return item.id === parsed.status.itemId
+			})
+
+			//this.experimental_api_current_item_title = JSON.stringify(currentItem)
+			this.experimental_api_current_item_title = currentItem.title
+			this.experimental_api_current_item_type = currentItem.kind
+			this.experimental_api_current_item_slide_count = currentItem.slides.length
+
+			this.instance.setVariableValues({
+				current_item_id: this.experimental_api_current_item_id,
+				current_item_title: this.experimental_api_current_item_title,
+				current_item_type: this.experimental_api_current_item_type,
+				current_item_slide_index: this.experimental_api_current_item_slide_index + 1,
+				current_item_slide_count: this.experimental_api_current_item_slide_count,
+				current_quick_screen: this.experimental_api_current_quick_screen,
+				current_media_state: this.experimental_api_current_media_state,
+			})
+		} catch (error) {
+			console.log('Error getting status: ' + JSON.stringify(error))
 		}
 	}
 
