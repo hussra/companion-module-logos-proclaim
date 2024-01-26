@@ -10,6 +10,7 @@ export class ProclaimAPI {
 
 		this.ip = ''
 		this.password = ''
+		this.experimental_api = false
 
 		this.on_air = false // Is Proclaim "On Air"?
 		this.on_air_session_id = '' // Proclaim On Air Session ID
@@ -18,6 +19,10 @@ export class ProclaimAPI {
 		this.proclaim_auth_required = false // Does Proclaim require authentication for App Commands?
 		this.proclaim_auth_successful = false // Were we able to authenticate to Proclaim?
 		this.proclaim_auth_token = '' // Proclaim authentication token
+		this.presentation_data = {} // Data on the currently on-air presentation
+		this.presentation_local_revision = -1
+		this.connectionId = ''
+		this.authenticationToken = ''
 	}
 
 	// Called when a new module configuration is supplied. Stash the ip and password, and
@@ -25,6 +30,7 @@ export class ProclaimAPI {
 	configure() {
 		this.ip = this.instance.config.ip
 		this.password = this.instance.config.password
+		this.experimental_api = this.instance.config.experimental_api
 
 		// Initialise on-air polling
 		if (this.onair_poll_interval !== undefined) {
@@ -38,6 +44,8 @@ export class ProclaimAPI {
 			// Ask for an auth token
 			this.getAuthToken()
 		}
+
+		this.clearPresentationData()
 	}
 
 	// When destroying, clear the interval for polling
@@ -100,16 +108,25 @@ export class ProclaimAPI {
 			// If we got a session ID back, we're on air! If we got blank, we're off air
 			if (data.length > 30) {
 				this.on_air = true
-				this.on_air_session_id = data
+				this.on_air_session_id = data.replace(/^\uFEFF/, '')
 				this.instance.setVariableValues({
 					on_air: true,
 				})
+
+				if (this.experimental_api) {
+					// Get info about the on-air presentation
+					this.getPresentationData()
+				}
 			} else {
 				this.on_air = false
 				this.on_air_session_id = ''
 				this.instance.setVariableValues({
 					on_air: false,
 				})
+
+				if (this.experimental_api) {
+					this.clearPresentationData()
+				}
 			}
 			this.instance.checkFeedbacks('on_air')
 			this.setModuleStatus()
@@ -123,6 +140,9 @@ export class ProclaimAPI {
 			this.on_air_successful = false
 			this.on_air = false
 			this.on_air_session_id = ''
+			if (this.experimental_api) {
+				this.clearPresentationData()
+			}
 			this.instance.setVariableValues({
 				on_air: false,
 			})
@@ -158,12 +178,119 @@ export class ProclaimAPI {
 			const parsed = JSON.parse(data.replace(/^\uFEFF/, ''))
 			this.proclaim_auth_successful = true
 			this.proclaim_auth_token = parsed.proclaimAuthToken
+
 			this.setModuleStatus()
 		} catch (error) {
 			if (error.response && error.response.statusCode == 401 && this.proclaim_auth_required) {
 				this.proclaim_auth_successful = false
 				this.setModuleStatus()
 			}
+		}
+	}
+
+	clearPresentationData() {
+		this.presentation_data = {}
+		this.presentation_local_revision = -1
+		this.instance.setVariableValues({
+			presentation_name: '',
+			connectionId: '',
+			authenticationToken: '',
+		})
+	}
+
+	// Obtain data on the current presentation
+	async getPresentationData() {
+		const url = `http://${this.ip}:52195/presentations/onair`
+		var data
+		try {
+			data = await got
+				.get(url, {
+					timeout: {
+						request: 1000,
+					},
+					retry: {
+						limit: 0,
+					},
+					headers: {
+						OnAirSessionId: this.on_air_session_id,
+					},
+					hooks: {
+						beforeRequest: [
+							(options) => {
+								options.headers['OnAirSessionId'] = options.headers['onairsessionid']
+							},
+						],
+					},
+				})
+				.text()
+
+			const parsed = JSON.parse(data.replace(/^\uFEFF/, ''))
+			if (parsed.localRevision != this.presentation_local_revision) {
+				this.presentation_data = parsed
+				this.presentation_local_revision = parsed.localRevision
+				this.instance.setVariableValues({
+					presentation_name: this.presentation_data.title,
+				})
+				this.getRemoteAuthToken()
+			}
+		} catch (error) {
+			console.log('Error retrieving presentation data: ' + JSON.stringify(error))
+			this.proclaim_auth_successful = false
+			this.setModuleStatus()
+		}
+	}
+
+	async getRemoteAuthToken() {
+		const url = `http://${this.ip}:52195//auth/control`
+
+		var data
+		try {
+			data = await got
+				.post(url, {
+					timeout: {
+						request: 1000,
+					},
+					retry: {
+						limit: 0,
+					},
+					headers: {
+						OnAirSessionId: this.on_air_session_id,
+					},
+					json: {
+						Password: 'Proclaim',
+					},
+					hooks: {
+						beforeRequest: [
+							(options) => {
+								options.headers['OnAirSessionId'] = options.headers['onairsessionid']
+							},
+						],
+					},
+				})
+				.text()
+
+			const parsed = JSON.parse(data.replace(/^\uFEFF/, ''))
+
+			this.connectionId = parsed.connectionId
+			this.authenticationToken = parsed.authenticationToken
+
+			// Temporary for debugging
+			this.instance.setVariableValues({
+				connectionId: this.connectionId,
+				authenticationToken: this.authenticationToken,
+			})
+
+			console.log('Remote auth response: ' + JSON.stringify(parsed))
+		} catch (error) {
+			console.log('Error getting remote auth: ' + JSON.stringify(error))
+			this.connectionId = ''
+			this.authenticationToken = ''
+
+			// Temporary for debugging
+			this.instance.setVariableValues({
+				connectionId: this.connectionId,
+				authenticationToken: this.authenticationToken,
+			})
 		}
 	}
 

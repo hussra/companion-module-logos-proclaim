@@ -87,7 +87,7 @@ class ProclaimInstance extends InstanceBase {
 			},
 			{
 				type: 'checkbox',
-				id: 'experimental-api',
+				id: 'experimental_api',
 				label: 'Enable experimental features?',
 				default: false,
 				width: 6,
