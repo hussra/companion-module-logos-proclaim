@@ -1,7 +1,8 @@
+import type { ModuleInstance } from './main.js'
 import { SONG_PARTS, SIMPLE_ACTIONS, CUSTOM_QUICK_SCREEN_COUNT } from './refdata.js'
-import { combineRgb } from '@companion-module/base'
+import { CompanionPresetDefinitions, combineRgb } from '@companion-module/base'
 
-export const UpdatePresets = async function (self) {
+export function UpdatePresets(self: ModuleInstance) {
 	const style = {
 		size: 18,
 		bgcolor: combineRgb(0, 0, 0),
@@ -9,7 +10,7 @@ export const UpdatePresets = async function (self) {
 	}
 
 	// On/Off Air Toggle with feedback
-	let presets = {
+	const presets: CompanionPresetDefinitions = {
 		on_air: {
 			type: 'button',
 			category: 'On Air',
@@ -23,6 +24,7 @@ export const UpdatePresets = async function (self) {
 					down: [
 						{
 							actionId: 'on_air_toggle',
+							options: {}
 						},
 					],
 					up: [],
@@ -31,6 +33,7 @@ export const UpdatePresets = async function (self) {
 			feedbacks: [
 				{
 					feedbackId: 'on_air',
+					options: {},
 					style: {
 						bgcolor: combineRgb(255, 0, 0),
 						color: combineRgb(0, 0, 0),
@@ -42,11 +45,11 @@ export const UpdatePresets = async function (self) {
 
 	// Add simple action presets, using the list from refdata.js
 	for (var preset in SIMPLE_ACTIONS) {
-		let id = SIMPLE_ACTIONS[preset].name.split(' ').join('_').toLowerCase()
-		let name = SIMPLE_ACTIONS[preset].name
-		let category = SIMPLE_ACTIONS[preset].category
-		let text = SIMPLE_ACTIONS[preset].text ? SIMPLE_ACTIONS[preset].text : SIMPLE_ACTIONS[preset].name
-		let size = SIMPLE_ACTIONS[preset].size ? SIMPLE_ACTIONS[preset].size : 18
+		let id: string = SIMPLE_ACTIONS[preset].name.split(' ').join('_').toLowerCase()
+		let name: string = SIMPLE_ACTIONS[preset].name
+		let category: string = SIMPLE_ACTIONS[preset].category
+		let text: string = (SIMPLE_ACTIONS[preset].text ? SIMPLE_ACTIONS[preset].text : SIMPLE_ACTIONS[preset].name)!
+		let size: number = (SIMPLE_ACTIONS[preset].size ? SIMPLE_ACTIONS[preset].size : 18)!
 		presets[id] = {
 			type: 'button',
 			category: category,
@@ -61,15 +64,17 @@ export const UpdatePresets = async function (self) {
 					down: [
 						{
 							actionId: id,
+							options: {},
 						},
 					],
 					up: [],
 				},
 			],
+			feedbacks: []
 		}
 	}
 
-	for (var i = 1; i <= CUSTOM_QUICK_SCREEN_COUNT; i++) {
+	for (var i: number = 1; i <= CUSTOM_QUICK_SCREEN_COUNT; i++) {
 		presets[`show_custom_quick_screen_${i}`] = {
 			type: 'button',
 			category: 'Quick Screens',
@@ -91,6 +96,7 @@ export const UpdatePresets = async function (self) {
 					up: [],
 				},
 			],
+			feedbacks: []
 		}
 	}
 
@@ -98,7 +104,7 @@ export const UpdatePresets = async function (self) {
 	for (var part in SONG_PARTS) {
 		let partId = SONG_PARTS[part].id
 		let label = SONG_PARTS[part].label
-		let displayLabel = SONG_PARTS[part].displayLabel ? SONG_PARTS[part].displayLabel : SONG_PARTS[part].label
+		let displayLabel: string = (SONG_PARTS[part].displayLabel ? SONG_PARTS[part].displayLabel : SONG_PARTS[part].label)!
 
 		if (label == 'Verse') {
 			for (var v = 1; v < 10; v++) {
@@ -125,6 +131,7 @@ export const UpdatePresets = async function (self) {
 							up: [],
 						},
 					],
+					feedbacks: []
 				}
 			}
 		} else {
@@ -151,6 +158,7 @@ export const UpdatePresets = async function (self) {
 						up: [],
 					},
 				],
+				feedbacks: []
 			}
 		}
 	}

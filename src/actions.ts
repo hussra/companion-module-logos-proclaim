@@ -1,9 +1,12 @@
+import type { CompanionActionDefinitions } from '@companion-module/base'
+import type { ModuleInstance } from './main.js'
 import { SONG_PARTS, SIMPLE_ACTIONS, CUSTOM_QUICK_SCREEN_COUNT } from './refdata.js'
 
-export const UpdateActions = function (self) {
-	let actions = {
+export function UpdateActions(self: ModuleInstance): void {
+	let actions: CompanionActionDefinitions = {
 		on_air_toggle: {
 			name: 'Toggle On Air',
+			options: [],
 			callback: async () => {
 				if (self.proclaimAPI.on_air) {
 					await self.proclaimAPI.sendAppCommand('GoOffAir')
@@ -25,7 +28,7 @@ export const UpdateActions = function (self) {
 					max: 254,
 				},
 			],
-			callback: async (event) => {
+			callback: async (event: any) => {
 				await self.proclaimAPI.sendAppCommand('GoToServiceItem', event.options.num)
 			},
 		},
@@ -42,7 +45,7 @@ export const UpdateActions = function (self) {
 					max: 254,
 				},
 			],
-			callback: async (event) => {
+			callback: async (event: any) => {
 				await self.proclaimAPI.sendAppCommand('GoToSlide', event.options.num)
 			},
 		},
@@ -66,7 +69,7 @@ export const UpdateActions = function (self) {
 					max: 254,
 				},
 			],
-			callback: async (event) => {
+			callback: async (event: any) => {
 				const part = SONG_PARTS[event.options.song_part].label
 				await self.proclaimAPI.sendAppCommand(`ShowSongLyrics${part}ByIndex`, event.options.item_index)
 			},
@@ -84,7 +87,7 @@ export const UpdateActions = function (self) {
 					max: CUSTOM_QUICK_SCREEN_COUNT,
 				},
 			],
-			callback: async (event) => {
+			callback: async (event: any) => {
 				await self.proclaimAPI.sendAppCommand('ShowCustomQuickScreen', event.options.num)
 			},
 		},
@@ -97,8 +100,9 @@ export const UpdateActions = function (self) {
 		let appCommand = SIMPLE_ACTIONS[action].appCommand ? SIMPLE_ACTIONS[action].appCommand : name.split(' ').join('')
 		actions[id] = {
 			name: name,
+			options: [],
 			callback: async () => {
-				await self.proclaimAPI.sendAppCommand(appCommand)
+				await self.proclaimAPI.sendAppCommand(appCommand!)
 			},
 		}
 	}

@@ -1,6 +1,7 @@
 import { combineRgb } from '@companion-module/base'
+import type { ModuleInstance } from './main.js'
 
-export const UpdateFeedbacks = async function (self) {
+export function UpdateFeedbacks(self: ModuleInstance) {
 	self.setFeedbackDefinitions({
 		on_air: {
 			name: 'On Air',
@@ -10,6 +11,7 @@ export const UpdateFeedbacks = async function (self) {
 				bgcolor: combineRgb(255, 0, 0),
 				color: combineRgb(0, 0, 0),
 			},
+			options: [],
 			callback: () => {
 				return self.proclaimAPI.on_air
 			},
