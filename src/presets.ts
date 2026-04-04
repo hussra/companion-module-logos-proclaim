@@ -44,12 +44,13 @@ export function UpdatePresets(self: ModuleInstance) {
 	}
 
 	// Add simple action presets, using the list from refdata.js
-	for (var preset in SIMPLE_ACTIONS) {
-		let id: string = SIMPLE_ACTIONS[preset].name.split(' ').join('_').toLowerCase()
-		let name: string = SIMPLE_ACTIONS[preset].name
-		let category: string = SIMPLE_ACTIONS[preset].category
-		let text: string = (SIMPLE_ACTIONS[preset].text ? SIMPLE_ACTIONS[preset].text : SIMPLE_ACTIONS[preset].name)!
-		let size: number = (SIMPLE_ACTIONS[preset].size ? SIMPLE_ACTIONS[preset].size : 18)!
+	for (const preset in SIMPLE_ACTIONS) {
+		const id = SIMPLE_ACTIONS[preset].name.split(' ').join('_').toLowerCase()
+		const name = SIMPLE_ACTIONS[preset].name
+		const category = SIMPLE_ACTIONS[preset].category
+		const text = (SIMPLE_ACTIONS[preset].text ? SIMPLE_ACTIONS[preset].text : SIMPLE_ACTIONS[preset].name)!
+		const size = (SIMPLE_ACTIONS[preset].size ? SIMPLE_ACTIONS[preset].size : 18)!
+
 		presets[id] = {
 			type: 'button',
 			category: category,
@@ -74,7 +75,7 @@ export function UpdatePresets(self: ModuleInstance) {
 		}
 	}
 
-	for (var i: number = 1; i <= CUSTOM_QUICK_SCREEN_COUNT; i++) {
+	for (let i: number = 1; i <= CUSTOM_QUICK_SCREEN_COUNT; i++) {
 		presets[`show_custom_quick_screen_${i}`] = {
 			type: 'button',
 			category: 'Quick Screens',
@@ -101,13 +102,13 @@ export function UpdatePresets(self: ModuleInstance) {
 	}
 
 	// Song Parts
-	for (var part in SONG_PARTS) {
-		let partId = SONG_PARTS[part].id
-		let label = SONG_PARTS[part].label
-		let displayLabel: string = (SONG_PARTS[part].displayLabel ? SONG_PARTS[part].displayLabel : SONG_PARTS[part].label)!
+	for (const part in SONG_PARTS) {
+		const partId = SONG_PARTS[part].id
+		const label = SONG_PARTS[part].label
+		const displayLabel: string = (SONG_PARTS[part].displayLabel ? SONG_PARTS[part].displayLabel : SONG_PARTS[part].label)!
 
 		if (label == 'Verse') {
-			for (var v = 1; v < 10; v++) {
+			for (let v = 1; v < 10; v++) {
 				const presetId = `song_part_${label.toLowerCase()}_${v}`
 				presets[presetId] = {
 					type: 'button',

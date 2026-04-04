@@ -147,7 +147,7 @@ export class ProclaimAPI {
 	// Get an authentication token from Proclaim
 	async getAuthToken() {
 		const url = `http://${this.ip}:52195/appCommand/authenticate`
-		var data
+		let data
 		try {
 			data = await got
 				.post(url, {

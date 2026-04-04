@@ -94,10 +94,10 @@ export function UpdateActions(self: ModuleInstance): void {
 	}
 
 	// Add simple actions, using the list from refdata.js
-	for (var action in SIMPLE_ACTIONS) {
-		let id = SIMPLE_ACTIONS[action].name.split(' ').join('_').toLowerCase()
-		let name = SIMPLE_ACTIONS[action].name
-		let appCommand = SIMPLE_ACTIONS[action].appCommand ? SIMPLE_ACTIONS[action].appCommand : name.split(' ').join('')
+	for (const action in SIMPLE_ACTIONS) {
+		const id = SIMPLE_ACTIONS[action].name.split(' ').join('_').toLowerCase()
+		const name = SIMPLE_ACTIONS[action].name
+		const appCommand = SIMPLE_ACTIONS[action].appCommand ? SIMPLE_ACTIONS[action].appCommand : name.split(' ').join('')
 		actions[id] = {
 			name: name,
 			options: [],
