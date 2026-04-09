@@ -161,9 +161,11 @@ export class ProclaimAPI {
 			this.proclaim_auth_token = parsed.proclaimAuthToken
 			this.setModuleStatus()
 		} catch (error) {
-			if (error.response && error.response.statusCode == 401 && this.proclaim_auth_required) {
+			if (error.response?.statusCode == 401 && this.proclaim_auth_required) {
 				this.proclaim_auth_successful = false
 				this.setModuleStatus()
+			} else {
+				this.instance.log('warn', `Authentication error: ${error.message}`)
 			}
 		}
 	}
