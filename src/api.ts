@@ -4,6 +4,7 @@ import { got, OptionsInit } from 'got'
 
 // Handle the interaction with Proclaim
 export class ProclaimAPI {
+
 	instance!: ModuleInstance
 	ip: string
 	password: string
@@ -34,7 +35,7 @@ export class ProclaimAPI {
 
 	// Called when a new module configuration is supplied. Stash the ip and password, and
 	// initialise on-air polling
-	configure() {
+	configure(): void {
 		this.ip = this.instance.config.ip
 		this.password = this.instance.config.password
 
@@ -53,14 +54,14 @@ export class ProclaimAPI {
 	}
 
 	// When destroying, clear the interval for polling
-	destroy() {
+	destroy(): void {
 		if (this.onair_poll_interval !== undefined) {
 			clearInterval(this.onair_poll_interval)
 		}
 	}
 
 	// Look at the various status flags and determine the overall module connection status
-	setModuleStatus() {
+	setModuleStatus(): void {
 		if (!this.ip) {
 			this.instance.updateStatus(InstanceStatus.BadConfig, 'IP not specified')
 			return
@@ -80,7 +81,7 @@ export class ProclaimAPI {
 	}
 
 	// Set up the regular polling of on-air status
-	init_onair_poll() {
+	init_onair_poll(): void {
 		this.onair_poll_interval = setInterval(() => {
 			this.onair_poll()
 		}, 1000)
@@ -88,7 +89,7 @@ export class ProclaimAPI {
 	}
 
 	// Poll for on-air status
-	async onair_poll() {
+	async onair_poll(): Promise<void> {
 		if (!this.ip) {
 			this.setModuleStatus()
 			return
@@ -145,7 +146,7 @@ export class ProclaimAPI {
 	}
 
 	// Get an authentication token from Proclaim
-	async getAuthToken() {
+	async getAuthToken(): Promise<void> {
 		const url = `http://${this.ip}:52195/appCommand/authenticate`
 		let data
 		try {
@@ -181,7 +182,7 @@ export class ProclaimAPI {
 	}
 
 	// Send any app command to Proclaim
-	async sendAppCommand(command: string, index?: number) {
+	async sendAppCommand(command: string, index?: number): Promise<void> {
 		let url = `http://${this.ip}:52195/appCommand/perform?appCommandName=${command}`
 		if (index !== undefined) {
 			url = `${url}&index=${index}`

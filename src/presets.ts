@@ -2,7 +2,8 @@ import type { ModuleInstance } from './main.js'
 import { SONG_PARTS, SIMPLE_ACTIONS, CUSTOM_QUICK_SCREEN_COUNT } from './refdata.js'
 import { CompanionPresetDefinitions, combineRgb } from '@companion-module/base'
 
-export function UpdatePresets(self: ModuleInstance) {
+export function UpdatePresets(self: ModuleInstance): void {
+
 	const style = {
 		size: 18,
 		bgcolor: combineRgb(0, 0, 0),

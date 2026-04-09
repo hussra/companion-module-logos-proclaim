@@ -1,7 +1,8 @@
 import { combineRgb } from '@companion-module/base'
 import type { ModuleInstance } from './main.js'
 
-export function UpdateFeedbacks(self: ModuleInstance) {
+export function UpdateFeedbacks(self: ModuleInstance): void {
+
 	self.setFeedbackDefinitions({
 		on_air: {
 			name: 'On Air',
@@ -17,4 +18,5 @@ export function UpdateFeedbacks(self: ModuleInstance) {
 			},
 		},
 	})
+
 }

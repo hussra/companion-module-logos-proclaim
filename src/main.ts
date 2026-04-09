@@ -8,6 +8,7 @@ import { UpdatePresets } from './presets.js'
 import { ProclaimAPI } from './api.js'
 
 export class ModuleInstance extends InstanceBase<ModuleConfig> {
+	
 	config!: ModuleConfig // Setup in init()
 	proclaimAPI!: ProclaimAPI // Setup in init()
 

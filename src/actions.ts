@@ -98,6 +98,7 @@ export function UpdateActions(self: ModuleInstance): void {
 		const id = SIMPLE_ACTIONS[action].name.split(' ').join('_').toLowerCase()
 		const name = SIMPLE_ACTIONS[action].name
 		const appCommand = SIMPLE_ACTIONS[action].appCommand ? SIMPLE_ACTIONS[action].appCommand : name.split(' ').join('')
+		
 		actions[id] = {
 			name: name,
 			options: [],

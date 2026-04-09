@@ -20,6 +20,7 @@ export const SONG_PARTS: SongPart[] = [
 // How many custom quick screens Proclaim supports
 export const CUSTOM_QUICK_SCREEN_COUNT: number = 2
 
+// Simple actions, each of which generates an action and matching preset, corresponding to a single Proclaim app command
 export interface SimpleAction {
 	name: string
 	category: string
@@ -28,8 +29,6 @@ export interface SimpleAction {
 	appCommand?: string
 }
 
-// Simple actions, each of which has an action and matching preset, corresponding to a single Proclaim app command
-//
 // The action and preset IDs will be the name, converted to snake_case
 // The preset text will be the name, unless overridden below
 // The preset text size will be 18, unless overridden below
