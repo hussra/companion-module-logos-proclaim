@@ -211,10 +211,12 @@ export class ProclaimAPI {
 				this.instance.log('debug', `Unexpected response from Proclaim: ${data}`)
 			}
 		} catch (error) {
-			if (error.response.statusCode == 401 && this.proclaim_auth_required) {
+			if (error.response?.statusCode == 401 && this.proclaim_auth_required) {
 				this.proclaim_auth_successful = false
 				this.proclaim_auth_token = ''
 				this.setModuleStatus()
+			} else {
+				this.instance.log('warn', `Command failed: ${error.message}`)
 			}
 		}
 	}
