@@ -208,7 +208,7 @@ export class ProclaimAPI {
 		try {
 			const data = (await got(url, options).text()).replace(/^\uFEFF/, '')
 			if (data != 'success') {
-				this.log('debug', `Unexpected response from Proclaim: ${data}`)
+				this.instance.log('debug', `Unexpected response from Proclaim: ${data}`)
 			}
 		} catch (error) {
 			if (error.response.statusCode == 401 && this.proclaim_auth_required) {
