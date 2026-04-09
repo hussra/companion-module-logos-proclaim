@@ -33,7 +33,7 @@ export class ProclaimAPI {
 		this.init_onair_poll()
 
 		// Does Proclaim require authentication?
-		this.proclaim_auth_required = this.ip != '127.0.0.1'
+		this.proclaim_auth_required = this.ip !== '127.0.0.1'
 		if (this.proclaim_auth_required) {
 			// Ask for an auth token
 			this.getAuthToken()
@@ -96,7 +96,7 @@ export class ProclaimAPI {
 			}).text()
 
 			this.on_air_successful = true
-
+			
 			// If we got a session ID back, we're on air! If we got blank, we're off air
 			if (data.length > 0) {
 				this.on_air = true
@@ -209,7 +209,7 @@ export class ProclaimAPI {
 
 		try {
 			const data = (await got(url, options).text()).replace(/^\uFEFF/, '')
-			if (data != 'success') {
+			if (data !== 'success') {
 				this.instance.log('debug', `Unexpected response from Proclaim: ${data}`)
 			}
 		} catch (error) {
