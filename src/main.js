@@ -69,7 +69,7 @@ class ProclaimInstance extends InstanceBase {
 				required: true,
 			},
 			{
-				type: 'textinput',
+				type: 'secret-text',
 				id: 'password',
 				label: 'Password',
 				width: 6,
