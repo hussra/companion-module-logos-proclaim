@@ -1,6 +1,6 @@
 import { combineRgb } from '@companion-module/base'
 
-export const UpdateFeedbacks = async function (self) {
+export const UpdateFeedbacks = function (self) {
 	self.setFeedbackDefinitions({
 		on_air: {
 			name: 'On Air',

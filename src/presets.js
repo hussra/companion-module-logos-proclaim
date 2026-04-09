@@ -1,7 +1,7 @@
 import { SONG_PARTS, SIMPLE_ACTIONS, CUSTOM_QUICK_SCREEN_COUNT } from './refdata.js'
 import { combineRgb } from '@companion-module/base'
 
-export const UpdatePresets = async function (self) {
+export const UpdatePresets = function (self) {
 	const style = {
 		size: 18,
 		bgcolor: combineRgb(0, 0, 0),
