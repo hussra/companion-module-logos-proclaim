@@ -24,7 +24,7 @@ export class ProclaimAPI {
 	// initialise on-air polling
 	configure() {
 		this.ip = this.instance.config.ip
-		this.password = this.instance.config.password
+		this.password = this.instance.secrets.password
 
 		// Initialise on-air polling
 		if (this.onair_poll_interval !== undefined) {

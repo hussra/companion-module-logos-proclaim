@@ -12,8 +12,9 @@ class ProclaimInstance extends InstanceBase {
 	}
 
 	// When module initialised
-	async init(config) {
+	async init(config, secrets) {
 		this.config = config
+		this.secrets = secrets
 
 		this.updateStatus(InstanceStatus.Connecting)
 
@@ -30,7 +31,7 @@ class ProclaimInstance extends InstanceBase {
 		})
 
 		// Process module config
-		await this.configUpdated(config)
+		await this.configUpdated(config, secrets)
 	}
 
 	// When module gets deleted
@@ -39,9 +40,9 @@ class ProclaimInstance extends InstanceBase {
 	}
 
 	// When module config updated
-	async configUpdated(config) {
+	async configUpdated(config, secrets) {
 		this.config = config
-
+		this.secrets = secrets
 		this.proclaimAPI.configure()
 	}
 
