@@ -12,7 +12,7 @@ class ProclaimInstance extends InstanceBase {
 	}
 
 	// When module initialised
-	async init(config, secrets) {
+	async init(config, isFirstInit, secrets) {
 		this.config = config
 		this.secrets = secrets
 
