@@ -161,11 +161,10 @@ export class ProclaimAPI {
 			this.proclaim_auth_token = parsed.proclaimAuthToken
 			this.setModuleStatus()
 		} catch (error) {
-			if ((error.response?.statusCode == 401 || error.response?.statusCode == 403) && this.proclaim_auth_required) {
+			this.instance.log('warn', `Authentication error in getAuthToken(): ${error.message}`)
+			if (this.proclaim_auth_required) {
 				this.proclaim_auth_successful = false
 				this.setModuleStatus()
-			} else {
-				this.instance.log('warn', `Authentication error: ${error.message}`)
 			}
 		}
 	}
@@ -213,12 +212,11 @@ export class ProclaimAPI {
 				this.instance.log('debug', `Unexpected response from Proclaim: ${data}`)
 			}
 		} catch (error) {
+			this.instance.log('warn', `Command failed in sendAppCommand(): ${error.message}`)
 			if ((error.response?.statusCode == 401 || error.response?.statusCode == 403) && this.proclaim_auth_required) {
 				this.proclaim_auth_successful = false
 				this.proclaim_auth_token = ''
 				this.setModuleStatus()
-			} else {
-				this.instance.log('warn', `Command failed: ${error.message}`)
 			}
 		}
 	}
