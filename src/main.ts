@@ -1,4 +1,5 @@
-import { InstanceBase, runEntrypoint, InstanceStatus, Regex } from '@companion-module/base'
+import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField  } from '@companion-module/base'
+import { ModuleConfig, ModuleSecrets, GetConfigFields } from './config.js'
 import { UpgradeScripts } from './upgrades.js'
 import { UpdateActions } from './actions.js'
 import { UpdateFeedbacks } from './feedbacks.js'
@@ -6,13 +7,18 @@ import { UpdateVariableDefinitions } from './variables.js'
 import { UpdatePresets } from './presets.js'
 import { ProclaimAPI } from './api.js'
 
-class ProclaimInstance extends InstanceBase {
-	constructor(internal) {
+export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
+
+	config!: ModuleConfig // Setup in init()
+	secrets!: ModuleSecrets // Setup in init()
+	proclaimAPI!: ProclaimAPI // Setup in init()
+
+	constructor(internal: unknown) {
 		super(internal)
 	}
 
 	// When module initialised
-	async init(config, isFirstInit, secrets) {
+	async init(config: ModuleConfig, _isFirstInit: boolean, secrets: ModuleSecrets): Promise<void> {
 		this.config = config
 		this.secrets = secrets
 
@@ -35,66 +41,37 @@ class ProclaimInstance extends InstanceBase {
 	}
 
 	// When module gets deleted
-	async destroy() {
+	async destroy(): Promise<void> {
 		this.proclaimAPI.destroy()
 	}
 
 	// When module config updated
-	async configUpdated(config, secrets) {
+	async configUpdated(config: ModuleConfig, secrets: ModuleSecrets): Promise<void> {
 		this.config = config
 		this.secrets = secrets
 		this.proclaimAPI.configure()
 	}
 
 	// Return config fields for web config
-	getConfigFields() {
-		return [
-			{
-				type: 'static-text',
-				id: 'intro',
-				label: 'Configuration Help',
-				value: `<p>First ensure that Proclaim's "Local Server" is enabled (see <b>Settings > Remote</b>).</p>
-				<p>If you are running Proclaim and Companion on different computers, you must also note the Proclaim
-				computer's IP address, and set a Network Control Password in <b>Settings > Remote</b>.</p>
-				<p>Then enter the IP address and password below.</p>
-				<p>See the Help for this module for further details.</p>`,
-				width: 12,
-			},
-			{
-				type: 'textinput',
-				id: 'ip',
-				label: 'Proclaim computer IP address',
-				width: 6,
-				regex: Regex.IP,
-				default: '127.0.0.1',
-				required: true,
-			},
-			{
-				type: 'secret-text',
-				id: 'password',
-				label: 'Password',
-				width: 6,
-				isVisibleExpression: "$(options:ip) !== '127.0.0.1'",
-				required: true,
-			},
-		]
+	getConfigFields(): SomeCompanionConfigField[] {
+		return GetConfigFields()
 	}
 
-	updateActions() {
+	updateActions(): void {
 		UpdateActions(this)
 	}
 
-	updateFeedbacks() {
+	updateFeedbacks(): void {
 		UpdateFeedbacks(this)
 	}
 
-	updateVariableDefinitions() {
+	updateVariableDefinitions(): void {
 		UpdateVariableDefinitions(this)
 	}
 
-	updatePresets() {
+	updatePresets(): void {
 		UpdatePresets(this)
 	}
 }
 
-runEntrypoint(ProclaimInstance, UpgradeScripts)
+runEntrypoint(ModuleInstance, UpgradeScripts)

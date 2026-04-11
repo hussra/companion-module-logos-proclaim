@@ -1,11 +1,24 @@
+import type { ModuleInstance } from './main.js'
 import { InstanceStatus } from '@companion-module/base'
-import { got } from 'got'
+import { got, OptionsInit } from 'got'
 
 // Handle the interaction with Proclaim
 export class ProclaimAPI {
+
+	instance!: ModuleInstance
+	ip: string
+	password: string
+	on_air: boolean
+	on_air_session_id: string
+	on_air_successful: boolean
+	onair_poll_interval: NodeJS.Timeout | undefined
+	proclaim_auth_required: boolean
+	proclaim_auth_successful: boolean
+	proclaim_auth_token: string
+
 	// Create a new ProclaimAPI object, storing a reference back to our module instance, and setting
 	// up our state variables
-	constructor(instance) {
+	constructor(instance: ModuleInstance) {
 		this.instance = instance
 
 		this.ip = ''
@@ -22,7 +35,7 @@ export class ProclaimAPI {
 
 	// Called when a new module configuration is supplied. Stash the ip and password, and
 	// initialise on-air polling
-	configure() {
+	configure(): void {
 		this.ip = this.instance.config.ip
 		this.password = this.instance.secrets.password
 
@@ -41,14 +54,14 @@ export class ProclaimAPI {
 	}
 
 	// When destroying, clear the interval for polling
-	destroy() {
+	destroy(): void {
 		if (this.onair_poll_interval !== undefined) {
 			clearInterval(this.onair_poll_interval)
 		}
 	}
 
 	// Look at the various status flags and determine the overall module connection status
-	setModuleStatus() {
+	setModuleStatus(): void {
 		if (!this.ip) {
 			this.instance.updateStatus(InstanceStatus.BadConfig, 'IP not specified')
 			return
@@ -68,7 +81,7 @@ export class ProclaimAPI {
 	}
 
 	// Set up the regular polling of on-air status
-	init_onair_poll() {
+	init_onair_poll(): void {
 		this.onair_poll_interval = setInterval(() => {
 			this.onair_poll()
 		}, 1000)
@@ -76,7 +89,7 @@ export class ProclaimAPI {
 	}
 
 	// Poll for on-air status
-	async onair_poll() {
+	async onair_poll(): Promise<void> {
 		if (!this.ip) {
 			this.setModuleStatus()
 			return
@@ -118,7 +131,7 @@ export class ProclaimAPI {
 			if (this.on_air_successful && !on_air_previously_successful && this.proclaim_auth_required) {
 				this.getAuthToken()
 			}
-		} catch (error) {
+		} catch (error: any) {
 			// Something went wrong obtaining on-air status - can't connect to Proclaim
 			this.instance.log('warn', `On Air status error: ${error.message}`)
 			this.on_air_successful = false
@@ -133,9 +146,9 @@ export class ProclaimAPI {
 	}
 
 	// Get an authentication token from Proclaim
-	async getAuthToken() {
+	async getAuthToken(): Promise<void> {
 		const url = `http://${this.ip}:52195/appCommand/authenticate`
-		var data
+		let data
 		try {
 			data = await got
 				.post(url, {
@@ -160,7 +173,7 @@ export class ProclaimAPI {
 			this.proclaim_auth_successful = true
 			this.proclaim_auth_token = parsed.proclaimAuthToken
 			this.setModuleStatus()
-		} catch (error) {
+		} catch (error: any) {
 			this.instance.log('warn', `Authentication error in getAuthToken(): ${error.message}`)
 			if (this.proclaim_auth_required) {
 				this.proclaim_auth_successful = false
@@ -170,19 +183,21 @@ export class ProclaimAPI {
 	}
 
 	// Send any app command to Proclaim
-	async sendAppCommand(command, index) {
+	async sendAppCommand(command: string, index?: number): Promise<void> {
 		let url = `http://${this.ip}:52195/appCommand/perform?appCommandName=${command}`
 		if (index !== undefined) {
 			url = `${url}&index=${index}`
 		}
 
-		const options = {
+		const options: OptionsInit = {
 			timeout: {
 				request: 1000,
 			},
 			retry: {
 				limit: 0,
 			},
+			resolveBodyOnly: true,
+			responseType: 'text',
 		}
 
 		if (this.proclaim_auth_required) {
@@ -207,11 +222,11 @@ export class ProclaimAPI {
 		}
 
 		try {
-			const data = (await got(url, options).text()).replace(/^\uFEFF/, '')
+			const data = (await got(url, options))!.toString().replace(/^\uFEFF/, '')
 			if (data !== 'success') {
 				this.instance.log('debug', `Unexpected response from Proclaim: ${data}`)
 			}
-		} catch (error) {
+		} catch (error: any) {
 			this.instance.log('warn', `Command failed in sendAppCommand(): ${error.message}`)
 			if ((error.response?.statusCode == 401 || error.response?.statusCode == 403) && this.proclaim_auth_required) {
 				this.proclaim_auth_successful = false
