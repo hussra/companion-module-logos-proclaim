@@ -96,7 +96,7 @@ export class ProclaimAPI {
 			}).text()
 
 			this.on_air_successful = true
-			
+
 			// If we got a session ID back, we're on air! If we got blank, we're off air
 			if (data.length > 0) {
 				this.on_air = true
