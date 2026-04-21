@@ -1,13 +1,17 @@
 {
 	"name": "logos-proclaim",
-	"version": "1.2.2",
-	"main": "src/main.js",
+	"version": "1.3.0-dev",
+	"main": "dist/main.js",
 	"type": "module",
 	"scripts": {
+		"postinstall": "husky",
 		"format": "prettier -w .",
-		"package": "companion-module-build",
+		"package": "run build && companion-module-build",
+		"build": "rimraf dist && run build:main",
+		"build:main": "tsc -p tsconfig.json",
+		"dev": "tsc -p tsconfig.build.json --watch",
 		"lint:raw": "eslint",
-		"lint": "yarn lint:raw ."
+		"lint": "run lint:raw ."
 	},
 	"license": "MIT",
 	"repository": {
@@ -24,9 +28,23 @@
 	},
 	"devDependencies": {
 		"@companion-module/tools": "^2.7.1",
-		"eslint": "^9.36.0",
-		"prettier": "^3.8.1"
+		"@types/node": "^22.19.3",
+		"eslint": "^9.39.2",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.2.7",
+		"prettier": "^3.8.1",
+		"rimraf": "^6.1.2",
+		"typescript": "~5.9.3",
+		"typescript-eslint": "^8.51.0"
 	},
 	"prettier": "@companion-module/tools/.prettierrc.json",
+	"lint-staged": {
+		"*.{css,json,md,scss}": [
+			"prettier --write"
+		],
+		"*.{ts,tsx,js,jsx}": [
+			"yarn lint:raw --fix"
+		]
+	},
 	"packageManager": "yarn@4.13.0"
 }

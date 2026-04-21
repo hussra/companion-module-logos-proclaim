@@ -1,7 +1,13 @@
 // Reference data used in setting up actions and presets
 
 // Song parts - used in the go_to_song_part action and in constructing its presets
-export const SONG_PARTS = [
+export interface SongPart {
+	id: number
+	label: string
+	displayLabel?: string
+}
+
+export const SONG_PARTS: SongPart[] = [
 	{ id: 0, label: 'Verse' },
 	{ id: 1, label: 'Chorus' },
 	{ id: 2, label: 'Bridge' },
@@ -12,15 +18,22 @@ export const SONG_PARTS = [
 ]
 
 // How many custom quick screens Proclaim supports
-export const CUSTOM_QUICK_SCREEN_COUNT = 2
+export const CUSTOM_QUICK_SCREEN_COUNT: number = 2
 
-// Simple actions, each of which has an action and matching preset, corresponding to a single Proclaim app command
-//
+// Simple actions, each of which generates an action and matching preset, corresponding to a single Proclaim app command
 // The action and preset IDs will be the name, converted to snake_case
 // The preset text will be the name, unless overridden below
 // The preset text size will be 18, unless overridden below
 // The Proclaim API App Command will be the name converted to CamelCase, unless overridden below
-export const SIMPLE_ACTIONS = [
+export interface SimpleAction {
+	name: string
+	category: string
+	text?: string
+	size?: number
+	appCommand?: string
+}
+
+export const SIMPLE_ACTIONS: SimpleAction[] = [
 	// On/Off Air
 	{
 		name: 'Go On Air',
