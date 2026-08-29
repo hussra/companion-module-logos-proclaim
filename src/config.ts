@@ -3,6 +3,7 @@ import { Regex, type SomeCompanionConfigField } from '@companion-module/base'
 export interface ModuleConfig {
 	ip: string
 	password?: string // Only when upgrading from a version that had the key in config - will be moved to secrets
+	remote_api: boolean
 }
 
 export interface ModuleSecrets {
@@ -38,6 +39,13 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			width: 6,
 			isVisibleExpression: "$(options:ip) !== '127.0.0.1'",
 			required: true,
+		},
+		{
+			type: 'checkbox',
+			id: 'remote_api',
+			label: 'Enable experimental Proclaim remote API',
+			width: 6,
+			default: false,
 		},
 	]
 }

@@ -11,6 +11,7 @@ export class ProclaimAPI {
 	#instance: ModuleInstance
 	#ip: string
 	#password?: string
+	#remote_api: boolean
 
 	#on_air: boolean
 	#on_air_session_id?: string
@@ -31,6 +32,7 @@ export class ProclaimAPI {
 
 		this.#ip = ''
 		this.#password = ''
+		this.#remote_api = false
 
 		this.#on_air = false // Is Proclaim "On Air"?
 		this.#on_air_session_id = '' // Proclaim On Air Session ID
@@ -54,6 +56,7 @@ export class ProclaimAPI {
 	async configure(): Promise<void> {
 		this.#ip = this.#instance.config.ip
 		this.#password = this.#instance.secrets.password
+		this.#remote_api = this.#instance.config.remote_api
 
 		// Initialise on-air polling
 		if (this.#onair_poll_interval !== undefined) {
@@ -159,7 +162,7 @@ export class ProclaimAPI {
 			this.setModuleStatus()
 		}
 
-		if (this.#on_air_session_id !== previous_on_air_session_id) {
+		if (this.#remote_api && this.#on_air_session_id !== previous_on_air_session_id) {
 			// On air session ID changed
 			if (this.#on_air_session_id === '') {
 				this.#instance.log('info', 'Gone off air, erase previously cached presentation data')

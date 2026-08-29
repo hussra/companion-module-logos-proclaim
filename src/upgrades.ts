@@ -19,6 +19,7 @@ export const UpgradeScripts: CompanionStaticUpgradeScript<ModuleConfig, ModuleSe
 			updatedConfig: {
 				ip: context.currentConfig.ip,
 				// Password will be removed - moving to secrets
+				remote_api: false,
 			},
 			updatedSecrets: {
 				password: context.currentConfig.password?.toString() || '',
