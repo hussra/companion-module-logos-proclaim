@@ -6,6 +6,49 @@ interface ProclaimAuthResponse {
 	proclaimAuthToken: string
 }
 
+enum aspectRatio {
+	SixteenByNine = 'SixteenByNine',
+	FourByThree = 'FourByThree',
+}
+
+interface Presentation {
+	sessionId: string
+	groupId: string
+	groupName: string
+	id: string
+	localRevision: number
+	title: string
+	logoServiceItemId: string
+	dateGiven: number
+	startTime: number // When the presentation went on-air
+	aspectRatio: aspectRatio
+	warmupStartIndex: number
+	serviceStartIndex: number
+	postServiceStartIndex: number
+	serviceItems: Array<ServiceItem>
+}
+
+enum ServiceItemKind {
+	Announcement = 'Announcement',
+	Content = 'Content',
+	StageDirectionCue = 'StageDirectionCue',
+	SongLyrics = 'SongLyrics',
+	Grouping = 'Grouping',
+}
+
+interface ServiceItem {
+	id: string
+	title: string
+	notes: string
+	kind: ServiceItemKind
+	slides: Array<Slide>
+}
+
+interface Slide {
+	localRevision: number
+	index: number
+}
+
 // Handle the interaction with Proclaim
 export class ProclaimAPI {
 	#instance: ModuleInstance
@@ -24,6 +67,8 @@ export class ProclaimAPI {
 	#proclaim_auth_token?: string
 
 	#lastFetchError?: string
+
+	#presentationData?: Presentation
 
 	// Create a new ProclaimAPI object, storing a reference back to our module instance, and setting
 	// up our state variables
@@ -166,8 +211,11 @@ export class ProclaimAPI {
 			// On air session ID changed
 			if (this.#on_air_session_id === '') {
 				this.#instance.log('info', 'Gone off air, erase previously cached presentation data')
+				this.#presentationData = undefined
+				this.populatePresentationVariables()
 			} else {
 				this.#instance.log('info', 'Gone on air, retrieve and cache presentation data')
+				await this.loadPresentation()
 			}
 		}
 
@@ -240,5 +288,44 @@ export class ProclaimAPI {
 				this.setModuleStatus()
 			}
 		}
+	}
+
+	private async loadPresentation() {
+		this.#instance.log('info', 'Loading on-air presentation data')
+
+		const url = `http://${this.#ip}:52195/presentations/onair`
+
+		const response = await fetch(url, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				...(this.#proclaim_auth_required && this.#proclaim_auth_successful
+					? { ProclaimAuthToken: this.#proclaim_auth_token }
+					: {}),
+				Onairsessionid: this.#on_air_session_id,
+			},
+		})
+
+		this.#presentationData = (await response.json()) as Presentation
+
+		this.populatePresentationVariables()
+	}
+
+	private populatePresentationVariables(): void {
+		if (this.#presentationData) {
+			this.#instance.setVariableValues({
+				presentation_date: this.ticksToUnixTime(this.#presentationData.dateGiven),
+				presentation_title: this.#presentationData.title,
+			})
+		} else {
+			this.#instance.setVariableValues({
+				presentation_date: undefined,
+				presentation_title: undefined,
+			})
+		}
+	}
+
+	private ticksToUnixTime(tick: number): number {
+		return (tick - 621355968000000000) / 10000
 	}
 }
