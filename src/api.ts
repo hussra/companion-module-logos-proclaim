@@ -22,6 +22,8 @@ export class ProclaimAPI {
 	#proclaim_auth_successful: boolean
 	#proclaim_auth_token?: string
 
+	#lastFetchError?: string
+
 	// Create a new ProclaimAPI object, storing a reference back to our module instance, and setting
 	// up our state variables
 	constructor(instance: ModuleInstance) {
@@ -65,6 +67,8 @@ export class ProclaimAPI {
 			// Ask for an auth token
 			await this.getAuthToken()
 		}
+
+		this.setModuleStatus()
 	}
 
 	// When destroying, clear the interval for polling
@@ -110,7 +114,9 @@ export class ProclaimAPI {
 		}
 
 		const url = `http://${this.#ip}:52195/onair/session`
-		const on_air_previously_successful = this.#on_air_successful
+		const previous_on_air_successful = this.#on_air_successful
+		const previous_on_air = this.#on_air
+		const previous_on_air_session_id = this.#on_air_session_id
 
 		try {
 			const data = await fetch(url, {
@@ -120,39 +126,51 @@ export class ProclaimAPI {
 				},
 			}).then(async (response) => response.text())
 			this.#on_air_successful = true
+			if (!previous_on_air_successful) {
+				this.#instance.log('info', 'Retrieved On Air status successfully')
+			}
 
 			// If we got a session ID back, we're on air! If we got blank, we're off air
 			if (data.length > 0) {
 				this.#on_air = true
 				this.#on_air_session_id = data
-				this.#instance.setVariableValues({
-					on_air: true,
-				})
 			} else {
 				this.#on_air = false
 				this.#on_air_session_id = ''
-				this.#instance.setVariableValues({
-					on_air: false,
-				})
-			}
-			this.#instance.checkFeedbacks('on_air')
-			this.setModuleStatus()
-
-			// If Proclaim is now responding and wasn't previously, try to authenticate
-			if (this.#on_air_successful && !on_air_previously_successful && this.#proclaim_auth_required) {
-				await this.getAuthToken()
 			}
 		} catch (error: any) {
 			// Something went wrong obtaining on-air status - can't connect to Proclaim
-			this.#instance.log('warn', `On Air status error: ${error.message}`)
 			this.#on_air_successful = false
 			this.#on_air = false
 			this.#on_air_session_id = ''
+			if (error.message !== this.#lastFetchError) {
+				this.#instance.log('warn', `Unable to retrieve On Air status: ${error.message}`)
+			}
+			this.#lastFetchError = error.message
+		}
+
+		if (this.#on_air !== previous_on_air) {
+			this.#instance.log('info', 'on air status changed')
+			// On air status changed
 			this.#instance.setVariableValues({
-				on_air: false,
+				on_air: this.#on_air,
 			})
 			this.#instance.checkFeedbacks('on_air')
 			this.setModuleStatus()
+		}
+
+		if (this.#on_air_session_id !== previous_on_air_session_id) {
+			// On air session ID changed
+			if (this.#on_air_session_id === '') {
+				this.#instance.log('info', 'Gone off air, erase previously cached presentation data')
+			} else {
+				this.#instance.log('info', 'Gone on air, retrieve and cache presentation data')
+			}
+		}
+
+		// If Proclaim is now responding and wasn't previously, try to authenticate
+		if (this.#on_air_successful && !previous_on_air_successful && this.#proclaim_auth_required) {
+			await this.getAuthToken()
 		}
 	}
 
