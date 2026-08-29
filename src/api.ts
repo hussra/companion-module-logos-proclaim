@@ -2,15 +2,17 @@ import { InstanceStatus } from '@companion-module/base'
 import { fetch } from 'undici'
 import { ModuleInstance } from './main.js'
 
+// Response from /onair/session endpoint
 interface ProclaimAuthResponse {
 	proclaimAuthToken: string
 }
 
 enum aspectRatio {
 	SixteenByNine = 'SixteenByNine',
-	FourByThree = 'FourByThree',
+	FourByThree = 'FourByThree', // Guess
 }
 
+// Response from /presentations/onair endpoint
 interface Presentation {
 	sessionId: string
 	groupId: string
@@ -34,8 +36,10 @@ enum ServiceItemKind {
 	StageDirectionCue = 'StageDirectionCue',
 	SongLyrics = 'SongLyrics',
 	Grouping = 'Grouping',
+	// More to follow I expect - pending availability of API docs
 }
 
+// Items within a presentation
 interface ServiceItem {
 	id: string
 	title: string
@@ -44,6 +48,7 @@ interface ServiceItem {
 	slides: Array<Slide>
 }
 
+// Slides within a service item
 interface Slide {
 	localRevision: number
 	index: number
