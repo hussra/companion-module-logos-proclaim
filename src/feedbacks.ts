@@ -13,7 +13,7 @@ export const UpdateFeedbacks = function (self: ModuleInstance): void {
 			},
 			options: [],
 			callback: () => {
-				return self.proclaimAPI.on_air
+				return self.proclaimAPI.status.onAir
 			},
 		},
 	})

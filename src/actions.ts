@@ -8,7 +8,7 @@ export const UpdateActions = function (self: ModuleInstance): void {
 			name: 'Toggle On Air',
 			options: [],
 			callback: async () => {
-				if (self.proclaimAPI.on_air) {
+				if (self.proclaimAPI.status.onAir) {
 					await self.proclaimAPI.sendAppCommand('GoOffAir')
 				} else {
 					await self.proclaimAPI.sendAppCommand('GoOnAir')

@@ -1,6 +1,7 @@
 import { InstanceStatus } from '@companion-module/base'
 import { fetch } from 'undici'
 import { ModuleInstance } from './main.js'
+import { ProclaimStatus } from './proclaimStatus.js'
 
 interface ProclaimAuthResponse {
 	proclaimAuthToken: string
@@ -11,16 +12,8 @@ export class ProclaimAPI {
 	#instance: ModuleInstance
 	#ip: string
 	#password?: string
-
-	#on_air: boolean
-	#on_air_session_id?: string
-	#on_air_successful: boolean
-
-	#onair_poll_interval?: ReturnType<typeof setInterval>
-
-	#proclaim_auth_required: boolean
-	#proclaim_auth_successful: boolean
-	#proclaim_auth_token?: string
+	#status: ProclaimStatus = new ProclaimStatus()
+	#pollInterval?: ReturnType<typeof setInterval>
 
 	// Create a new ProclaimAPI object, storing a reference back to our module instance, and setting
 	// up our state variables
@@ -30,21 +23,38 @@ export class ProclaimAPI {
 		this.#ip = ''
 		this.#password = ''
 
-		this.#on_air = false // Is Proclaim "On Air"?
-		this.#on_air_session_id = '' // Proclaim On Air Session ID
-		this.#on_air_successful = false // Were we able to connect to check Proclaim's On Air status?
-		this.#onair_poll_interval = undefined // The interval ID for polling On Air status
-		this.#proclaim_auth_required = false // Does Proclaim require authentication for App Commands?
-		this.#proclaim_auth_successful = false // Were we able to authenticate to Proclaim?
-		this.#proclaim_auth_token = '' // Proclaim authentication token
+		this.#pollInterval = undefined // The interval ID for polling On Air status
+
+		this.#status.on('configIsValid:changed', (configIsValid) => {
+			this.#instance.log('debug', `Proclaim configIsValid status changed: ${configIsValid}`)
+			this.updateInstanceStatus()
+		})
+
+		this.#status.on('connected:changed', (connected) => {
+			this.#instance.log('debug', `Proclaim connected status changed: ${connected}`)
+			this.updateInstanceStatus()
+		})
+
+		this.#status.on('authenticated:changed', (authenticated) => {
+			this.#instance.log('debug', `Proclaim authenticated status changed: ${authenticated}`)
+			this.updateInstanceStatus()
+		})
+
+		this.#status.on('onAir:changed', (onAir) => {
+			this.#instance.log('debug', `Proclaim onAir status changed: ${onAir}`)
+			this.#instance.setVariableValues({
+				on_air: onAir,
+			})
+			this.#instance.checkFeedbacks('on_air')
+		})
 	}
 
-	get on_air(): boolean {
-		return this.#on_air
+	get status(): ProclaimStatus {
+		return this.#status
 	}
 
-	get on_air_session_id(): string | undefined {
-		return this.#on_air_session_id
+	get authRequired(): boolean {
+		return this.#ip !== '127.0.0.1'
 	}
 
 	// Called when a new module configuration is supplied. Stash the ip and password, and
@@ -53,40 +63,50 @@ export class ProclaimAPI {
 		this.#ip = this.#instance.config.ip
 		this.#password = this.#instance.secrets.password
 
+		if (!this.configIsValid()) {
+			this.#status.configIsValid = false
+		}
+
 		// Initialise on-air polling
-		if (this.#onair_poll_interval !== undefined) {
-			clearInterval(this.#onair_poll_interval)
+		if (this.#pollInterval !== undefined) {
+			clearInterval(this.#pollInterval)
 		}
 		await this.init_onair_poll()
 
 		// Does Proclaim require authentication?
-		this.#proclaim_auth_required = this.#ip !== '127.0.0.1'
-		if (this.#proclaim_auth_required) {
+		if (this.authRequired) {
 			// Ask for an auth token
 			await this.getAuthToken()
 		}
 	}
 
+	private configIsValid(): boolean {
+		return (
+			this.#ip.length > 0 &&
+			(!this.authRequired || (this.authRequired && this.#password !== undefined && this.#password?.length > 0))
+		)
+	}
+
 	// When destroying, clear the interval for polling
 	destroy(): void {
-		if (this.#onair_poll_interval !== undefined) {
-			clearInterval(this.#onair_poll_interval)
+		if (this.#pollInterval !== undefined) {
+			clearInterval(this.#pollInterval)
 		}
 	}
 
 	// Look at the various status flags and determine the overall module connection status
-	private setModuleStatus(): void {
+	private updateInstanceStatus(): void {
 		if (!this.#ip) {
 			this.#instance.updateStatus(InstanceStatus.BadConfig, 'IP not specified')
 			return
 		}
 
-		if (!this.#on_air_successful) {
+		if (!this.#status.connected) {
 			this.#instance.updateStatus(InstanceStatus.Disconnected, 'Could not connect to Proclaim')
 			return
 		}
 
-		if (this.#proclaim_auth_required && !this.#proclaim_auth_successful) {
+		if (this.authRequired && !this.#status.authenticated) {
 			this.#instance.updateStatus(InstanceStatus.AuthenticationFailure, 'Proclaim authentication unsuccessful')
 			return
 		}
@@ -96,7 +116,7 @@ export class ProclaimAPI {
 
 	// Set up the regular polling of on-air status
 	private async init_onair_poll(): Promise<void> {
-		this.#onair_poll_interval = setInterval(() => {
+		this.#pollInterval = setInterval(() => {
 			void this.onair_poll()
 		}, 1000)
 		void this.onair_poll()
@@ -104,13 +124,8 @@ export class ProclaimAPI {
 
 	// Poll for on-air status
 	private async onair_poll(): Promise<void> {
-		if (!this.#ip) {
-			this.setModuleStatus()
-			return
-		}
-
 		const url = `http://${this.#ip}:52195/onair/session`
-		const on_air_previously_successful = this.#on_air_successful
+		const previouslyConnected = this.#status.connected
 
 		try {
 			const data = await fetch(url, {
@@ -119,40 +134,27 @@ export class ProclaimAPI {
 					Accept: 'text/plain',
 				},
 			}).then(async (response) => response.text())
-			this.#on_air_successful = true
+			this.#status.connected = true
 
 			// If we got a session ID back, we're on air! If we got blank, we're off air
 			if (data.length > 0) {
-				this.#on_air = true
-				this.#on_air_session_id = data
-				this.#instance.setVariableValues({
-					on_air: true,
-				})
+				this.#status.onAir = true
+				this.#status.sessionId = data
 			} else {
-				this.#on_air = false
-				this.#on_air_session_id = ''
-				this.#instance.setVariableValues({
-					on_air: false,
-				})
+				this.#status.onAir = false
+				this.#status.sessionId = ''
 			}
-			this.#instance.checkFeedbacks('on_air')
-			this.setModuleStatus()
 
 			// If Proclaim is now responding and wasn't previously, try to authenticate
-			if (this.#on_air_successful && !on_air_previously_successful && this.#proclaim_auth_required) {
+			if (this.#status.connected && !previouslyConnected && this.authRequired) {
 				await this.getAuthToken()
 			}
 		} catch (error: any) {
 			// Something went wrong obtaining on-air status - can't connect to Proclaim
 			this.#instance.log('warn', `On Air status error: ${error.message}`)
-			this.#on_air_successful = false
-			this.#on_air = false
-			this.#on_air_session_id = ''
-			this.#instance.setVariableValues({
-				on_air: false,
-			})
-			this.#instance.checkFeedbacks('on_air')
-			this.setModuleStatus()
+			this.#status.connected = false
+			this.#status.onAir = false
+			this.#status.sessionId = ''
 		}
 	}
 
@@ -172,22 +174,19 @@ export class ProclaimAPI {
 
 			if (!response.ok) {
 				this.#instance.log('warn', 'Authentication error in getAuthToken()')
-				if (this.#proclaim_auth_required) {
-					this.#proclaim_auth_successful = false
-					this.setModuleStatus()
+				if (this.authRequired) {
+					this.#status.authenticated = false
 				}
 				return
 			}
 
 			const data = (await response.json()) as ProclaimAuthResponse
-			this.#proclaim_auth_successful = true
-			this.#proclaim_auth_token = data?.proclaimAuthToken
-			this.setModuleStatus()
+			this.#status.authToken = data?.proclaimAuthToken
+			this.#status.authenticated = true
 		} catch (error: any) {
 			this.#instance.log('warn', `Authentication error in getAuthToken(): ${error.message}`)
-			if (this.#proclaim_auth_required) {
-				this.#proclaim_auth_successful = false
-				this.setModuleStatus()
+			if (this.authRequired) {
+				this.#status.authenticated = false
 			}
 		}
 	}
@@ -203,18 +202,15 @@ export class ProclaimAPI {
 			const response = await fetch(url, {
 				headers: {
 					'Content-Type': 'application/json',
-					...(this.#proclaim_auth_required && this.#proclaim_auth_successful
-						? { ProclaimAuthToken: this.#proclaim_auth_token }
-						: {}),
+					...(this.authRequired && this.#status.authenticated ? { ProclaimAuthToken: this.#status.authToken } : {}),
 				},
 			})
 
 			if (!response.ok) {
 				if (response.status === 401 || response.status === 403) {
 					this.#instance.log('warn', `Proclaim authentication failed: ${response.status} ${response.statusText}`)
-					this.#proclaim_auth_successful = false
-					this.#proclaim_auth_token = ''
-					this.setModuleStatus()
+					this.#status.authenticated = false
+					this.#status.authToken = ''
 				} else {
 					this.#instance.log('warn', `Proclaim command failed: ${response.status} ${response.statusText}`)
 				}
