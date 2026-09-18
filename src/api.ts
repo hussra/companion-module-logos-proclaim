@@ -2,10 +2,7 @@ import { InstanceStatus } from '@companion-module/base'
 import { fetch } from 'undici'
 import { ModuleInstance } from './main.js'
 import { ProclaimStatus } from './status.js'
-
-interface ProclaimAuthResponse {
-	proclaimAuthToken: string
-}
+import { Presentation, ProclaimAuthResponse } from './apiTypes.js'
 
 // Handle the interaction with Proclaim
 export class ProclaimAPI {
@@ -53,6 +50,15 @@ export class ProclaimAPI {
 			this.#instance.setVariableValues({
 				session_id: sessionId,
 			})
+
+			void this.getPresentation().then((presentation) => {
+				this.#status.presentation = presentation
+			})
+		})
+
+		this.#status.on('presentation:changed', (presentation) => {
+			this.#instance.log('debug', presentation ? JSON.stringify(presentation, null, 2) : 'null')
+			this.populatePresentationVariables()
 		})
 	}
 
@@ -230,5 +236,47 @@ export class ProclaimAPI {
 		} catch (error: any) {
 			this.#instance.log('warn', `Proclaim command failed: ${error.message}`)
 		}
+	}
+
+	async getPresentation(): Promise<Presentation | null> {
+		if (this.#status.sessionId.length === 0) {
+			this.#instance.log('debug', 'No sessionId available, cannot fetch presentation')
+			return null
+		}
+
+		this.#instance.log(
+			'debug',
+			`Fetching presentation for sessionId: ${this.#status.sessionId} using authToken: ${this.#status.authToken}`,
+		)
+
+		const url = `http://${this.#ip}:52195/presentations/onair`
+
+		const response = await fetch(url, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				Onairsessionid: this.#status.sessionId,
+				...(this.authRequired && this.#status.authenticated ? { ProclaimAuthToken: this.#status.authToken } : {}),
+			},
+		})
+
+		return response.ok ? ((await response.json()) as Presentation) : null
+	}
+
+	private populatePresentationVariables(): void {
+		const presentation = this.#status.presentation
+		this.#instance.setVariableValues({
+			presentation_title: presentation ? presentation.title : '',
+			presentation_id: presentation ? presentation.id : '',
+			presentation_group_name: presentation ? presentation.groupName : '',
+			presentation_group_id: presentation ? presentation.groupId : '',
+			presentation_aspect_ratio: presentation ? presentation.aspectRatio : '',
+			presentation_date: presentation ? this.ticksToUnixTime(presentation.dateGiven) : '',
+			presentation_start_time: presentation ? this.ticksToUnixTime(presentation.startTime) : '',
+		})
+	}
+
+	private ticksToUnixTime(tick: number): number {
+		return (tick - 621355968000000000) / 10000
 	}
 }

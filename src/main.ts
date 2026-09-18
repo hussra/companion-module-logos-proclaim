@@ -33,6 +33,14 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 		// Initialise variables
 		this.setVariableValues({
 			on_air: false,
+			session_id: '',
+			presentation_title: '',
+			presentation_id: '',
+			presentation_group_name: '',
+			presentation_group_id: '',
+			presentation_aspect_ratio: '',
+			presentation_date: '',
+			presentation_start_time: '',
 		})
 
 		// Process module config

@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events'
+import { Presentation } from './apiTypes.js'
 
 interface ProclaimEvents {
 	'configIsValid:changed': [configIsValid: boolean]
@@ -7,6 +8,7 @@ interface ProclaimEvents {
 	'authenticated:changed': [authenticated: boolean]
 	'sessionId:changed': [sessionId: string]
 	'authToken:changed': [authToken: string]
+	'presentation:changed': [presentation: Presentation | null]
 }
 
 export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
@@ -18,6 +20,8 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 	#sessionId: string
 	#authToken: string
 
+	#presentation: Presentation | null
+
 	constructor() {
 		super()
 		this.#configIsValid = false
@@ -26,6 +30,7 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 		this.#authenticated = false
 		this.#sessionId = ''
 		this.#authToken = ''
+		this.#presentation = null
 	}
 
 	get configIsValid(): boolean {
@@ -91,6 +96,17 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 		if (this.#authToken !== value) {
 			this.#authToken = value
 			this.emit('authToken:changed', value)
+		}
+	}
+
+	get presentation(): Presentation | null {
+		return this.#presentation
+	}
+
+	set presentation(value: Presentation | null) {
+		if (this.#presentation !== value) {
+			this.#presentation = value
+			this.emit('presentation:changed', value)
 		}
 	}
 }
