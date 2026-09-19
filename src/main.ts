@@ -41,6 +41,10 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 			presentation_aspect_ratio: '',
 			presentation_date: '',
 			presentation_start_time: '',
+			item_id: '',
+			item_title: '',
+			slide_index: 1,
+			slide_count: 0,
 		})
 
 		// Process module config
