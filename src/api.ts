@@ -2,7 +2,7 @@ import { InstanceStatus } from '@companion-module/base'
 import { fetch } from 'undici'
 import { ModuleInstance } from './main.js'
 import { ProclaimStatus } from './status.js'
-import { Presentation, PresentationStatus, ProclaimAuthResponse } from './apiTypes.js'
+import { Presentation, PresentationStatus, ProclaimAuthResponse, ServiceItem } from './apiTypes.js'
 
 // Handle the interaction with Proclaim
 export class ProclaimAPI {
@@ -66,21 +66,25 @@ export class ProclaimAPI {
 
 		this.#status.on('itemId:changed', (itemId) => {
 			this.#instance.log('debug', `Proclaim itemId status changed: ${itemId}`)
-			//this.#status.presentation?.serviceItems.forEach((item) => {
-			const currentItem = this.#status.presentation?.serviceItems.find((item) => item.id === itemId)
-			if (currentItem) {
+			const currentItemIndex = this.#status.presentation?.serviceItems.findIndex((item) => item.id === itemId)
+			if (currentItemIndex !== undefined) {
+				this.#status.currentItemIndex = currentItemIndex
+				const currentItem = this.#status.presentation?.serviceItems[currentItemIndex] as ServiceItem
 				this.#instance.setVariableValues({
 					item_id: currentItem.id,
 					item_title: currentItem.title,
+					item_index: currentItemIndex,
 					slide_count: currentItem.slides.length,
 				})
 			} else {
+				this.#status.currentItemIndex = -1
 				this.#instance.setVariableValues({
 					item_id: '',
 					item_title: '',
 					slide_count: 0,
 				})
 			}
+			this.#instance.checkFeedbacks('in_service_part')
 		})
 
 		this.#status.on('slideIndex:changed', (slideIndex) => {
@@ -336,6 +340,7 @@ export class ProclaimAPI {
 			presentation_aspect_ratio: presentation ? presentation.aspectRatio : '',
 			presentation_date: presentation ? this.ticksToUnixTime(presentation.dateGiven) : '',
 			presentation_start_time: presentation ? this.ticksToUnixTime(presentation.startTime) : '',
+			item_count: presentation ? presentation.serviceItems.length : 0,
 		})
 	}
 

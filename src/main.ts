@@ -43,6 +43,8 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 			presentation_start_time: '',
 			item_id: '',
 			item_title: '',
+			item_index: 0,
+			item_count: 0,
 			slide_index: 1,
 			slide_count: 0,
 		})

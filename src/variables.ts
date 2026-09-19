@@ -13,6 +13,8 @@ export const UpdateVariableDefinitions = function (self: ModuleInstance): void {
 		{ variableId: 'presentation_start_time', name: 'Presentation Start Time (On Air since) - Unix Timestamp' },
 		{ variableId: 'item_id', name: 'Current Service Item ID' },
 		{ variableId: 'item_title', name: 'Current Service Item Title' },
+		{ variableId: 'item_index', name: 'Index of Current Service Item' },
+		{ variableId: 'item_count', name: 'Number of Service Items in Current Presentation' },
 		{ variableId: 'slide_index', name: 'Current Slide within Current Service Item' },
 		{ variableId: 'slide_count', name: 'Number of Slides within Current Service Item' },
 	])

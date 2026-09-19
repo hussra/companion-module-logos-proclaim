@@ -16,5 +16,46 @@ export const UpdateFeedbacks = function (self: ModuleInstance): void {
 				return self.proclaimAPI.status.onAir
 			},
 		},
+
+		in_service_part: {
+			name: 'In Service Part',
+			type: 'boolean',
+			description: 'Whether or not Proclaim is in a particular service part',
+			defaultStyle: {
+				bgcolor: combineRgb(0, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			options: [
+				{
+					id: 'servicePart',
+					type: 'dropdown',
+					label: 'Service Part',
+					default: 'service',
+					choices: [
+						{ id: 'pre-service', label: 'Pre-Service' },
+						{ id: 'warmup', label: 'Warmup' },
+						{ id: 'service', label: 'Service' },
+						{ id: 'post-service', label: 'Post-Service' },
+					],
+				},
+			],
+			callback: (event) => {
+				const servicePart = event.options.servicePart
+				const itemIndex = self.proclaimAPI.status.currentItemIndex
+				const warmupStartIndex = self.proclaimAPI.status.presentation?.warmupStartIndex ?? -1
+				const serviceStartIndex = self.proclaimAPI.status.presentation?.serviceStartIndex ?? -1
+				const postServiceStartIndex = self.proclaimAPI.status.presentation?.postServiceStartIndex ?? -1
+				if (servicePart === 'pre-service') {
+					return itemIndex < warmupStartIndex
+				} else if (servicePart === 'warmup') {
+					return itemIndex >= warmupStartIndex && itemIndex < serviceStartIndex
+				} else if (servicePart === 'service') {
+					return itemIndex >= serviceStartIndex && itemIndex < postServiceStartIndex
+				} else if (servicePart === 'post-service') {
+					return itemIndex >= postServiceStartIndex
+				}
+				return true
+			},
+		},
 	})
 }

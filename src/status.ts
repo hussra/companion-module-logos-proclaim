@@ -13,6 +13,7 @@ interface ProclaimEvents {
 	'presentationLocalRevision:changed': [presentationLocalRevision: number]
 	'revision:changed': [revision: number]
 	'itemId:changed': [itemId: string]
+	'currentItemIndex:changed': [currentItemIndex: number]
 	'slideIndex:changed': [slideIndex: number]
 	'quickScreenKind:changed': [quickScreenKind: string]
 	'mediaState:changed': [mediaState: string]
@@ -34,6 +35,7 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 
 	#revision: number
 	#itemId: string
+	#currentItemIndex: number
 	#slideIndex: number
 	#quickScreenKind: string
 	#mediaState: string
@@ -51,6 +53,7 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 		this.#presentationLocalRevision = 0
 		this.#revision = 0
 		this.#itemId = ''
+		this.#currentItemIndex = -1
 		this.#slideIndex = 0
 		this.#quickScreenKind = ''
 		this.#mediaState = ''
@@ -174,6 +177,17 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 		if (this.#itemId !== value) {
 			this.#itemId = value
 			this.emit('itemId:changed', value)
+		}
+	}
+
+	get currentItemIndex(): number {
+		return this.#currentItemIndex
+	}
+
+	set currentItemIndex(value: number) {
+		if (this.#currentItemIndex !== value) {
+			this.#currentItemIndex = value
+			this.emit('currentItemIndex:changed', value)
 		}
 	}
 
