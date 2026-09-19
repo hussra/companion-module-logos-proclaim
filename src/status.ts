@@ -9,6 +9,13 @@ interface ProclaimEvents {
 	'sessionId:changed': [sessionId: string]
 	'authToken:changed': [authToken: string]
 	'presentation:changed': [presentation: Presentation | null]
+	'presentationId:changed': [presentationId: string]
+	'presentationLocalRevision:changed': [presentationLocalRevision: number]
+	'revision:changed': [revision: number]
+	'itemId:changed': [itemId: string]
+	'slideIndex:changed': [slideIndex: number]
+	'quickScreenKind:changed': [quickScreenKind: string]
+	'mediaState:changed': [mediaState: string]
 }
 
 export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
@@ -22,6 +29,15 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 
 	#presentation: Presentation | null
 
+	#presentationId: string
+	#presentationLocalRevision: number
+
+	#revision: number
+	#itemId: string
+	#slideIndex: number
+	#quickScreenKind: string
+	#mediaState: string
+
 	constructor() {
 		super()
 		this.#configIsValid = false
@@ -31,6 +47,13 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 		this.#sessionId = ''
 		this.#authToken = ''
 		this.#presentation = null
+		this.#presentationId = ''
+		this.#presentationLocalRevision = 0
+		this.#revision = 0
+		this.#itemId = ''
+		this.#slideIndex = 0
+		this.#quickScreenKind = ''
+		this.#mediaState = ''
 	}
 
 	get configIsValid(): boolean {
@@ -107,6 +130,83 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 		if (this.#presentation !== value) {
 			this.#presentation = value
 			this.emit('presentation:changed', value)
+		}
+	}
+
+	get presentationId(): string {
+		return this.#presentationId
+	}
+
+	set presentationId(value: string) {
+		if (this.#presentationId !== value) {
+			this.#presentationId = value
+			this.emit('presentationId:changed', value)
+		}
+	}
+
+	get presentationLocalRevision(): number {
+		return this.#presentationLocalRevision
+	}
+
+	set presentationLocalRevision(value: number) {
+		if (this.#presentationLocalRevision !== value) {
+			this.#presentationLocalRevision = value
+			this.emit('presentationLocalRevision:changed', value)
+		}
+	}
+
+	get revision(): number {
+		return this.#revision
+	}
+
+	set revision(value: number) {
+		if (this.#revision !== value) {
+			this.#revision = value
+			this.emit('revision:changed', value)
+		}
+	}
+
+	get itemId(): string {
+		return this.#itemId
+	}
+
+	set itemId(value: string) {
+		if (this.#itemId !== value) {
+			this.#itemId = value
+			this.emit('itemId:changed', value)
+		}
+	}
+
+	get slideIndex(): number {
+		return this.#slideIndex
+	}
+
+	set slideIndex(value: number) {
+		if (this.#slideIndex !== value) {
+			this.#slideIndex = value
+			this.emit('slideIndex:changed', value)
+		}
+	}
+
+	get quickScreenKind(): string {
+		return this.#quickScreenKind
+	}
+
+	set quickScreenKind(value: string) {
+		if (this.#quickScreenKind !== value) {
+			this.#quickScreenKind = value
+			this.emit('quickScreenKind:changed', value)
+		}
+	}
+
+	get mediaState(): string {
+		return this.#mediaState
+	}
+
+	set mediaState(value: string) {
+		if (this.#mediaState !== value) {
+			this.#mediaState = value
+			this.emit('mediaState:changed', value)
 		}
 	}
 }

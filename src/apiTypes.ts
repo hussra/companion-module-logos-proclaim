@@ -49,3 +49,26 @@ export interface Slide {
 	localRevision: number // Timestamp of the last time the slide was modified
 	index: number // Slide index within the service item
 }
+
+// Presentation status returned from /onair/statusChanged endpoint
+export interface PresentationStatus {
+	presentationId: string // GUID
+	presentationLocalRevision: number // Timestamp of the last time the presentation was modified
+	status: {
+		revision: number // Integer that increments each time the presentation output changes, e.g. when a slide is advanced
+		itemId: string // GUID of the service item that is currently on-air
+		slideIndex: number // Index of the slide that is currently on-air within the service item
+		quickScreenKind: QuickScreenKind // The kind of quick screen that is currently on-air
+		mediaState: MediaState // The current media state
+	}
+}
+
+export enum QuickScreenKind {
+	None = 'None',
+	// More to follow - pending availability of API docs
+}
+
+export enum MediaState {
+	Playing = 'Playing',
+	// More to follow - pending availability of API docs
+}

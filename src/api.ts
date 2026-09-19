@@ -2,7 +2,7 @@ import { InstanceStatus } from '@companion-module/base'
 import { fetch } from 'undici'
 import { ModuleInstance } from './main.js'
 import { ProclaimStatus } from './status.js'
-import { Presentation, ProclaimAuthResponse } from './apiTypes.js'
+import { Presentation, PresentationStatus, ProclaimAuthResponse } from './apiTypes.js'
 
 // Handle the interaction with Proclaim
 export class ProclaimAPI {
@@ -59,6 +59,35 @@ export class ProclaimAPI {
 		this.#status.on('presentation:changed', (presentation) => {
 			this.#instance.log('debug', presentation ? JSON.stringify(presentation, null, 2) : 'null')
 			this.populatePresentationVariables()
+		})
+
+		// TODO: Watch for presentionId changing, clear session ID and presentation to force reload
+		// TODO: Watch for presentationLocalRevision changing and reload presentation
+
+		this.#status.on('itemId:changed', (itemId) => {
+			this.#instance.log('debug', `Proclaim itemId status changed: ${itemId}`)
+			//this.#status.presentation?.serviceItems.forEach((item) => {
+			const currentItem = this.#status.presentation?.serviceItems.find((item) => item.id === itemId)
+			if (currentItem) {
+				this.#instance.setVariableValues({
+					item_id: currentItem.id,
+					item_title: currentItem.title,
+					slide_count: currentItem.slides.length,
+				})
+			} else {
+				this.#instance.setVariableValues({
+					item_id: '',
+					item_title: '',
+					slide_count: 0,
+				})
+			}
+		})
+
+		this.#status.on('slideIndex:changed', (slideIndex) => {
+			this.#instance.log('debug', `Proclaim slideIndex status changed: ${slideIndex}`)
+			this.#instance.setVariableValues({
+				slide_index: slideIndex + 1, // Convert from 0-based to 1-based for user display
+			})
 		})
 	}
 
@@ -155,6 +184,11 @@ export class ProclaimAPI {
 			// If Proclaim is now responding and wasn't previously, try to authenticate
 			if (this.#status.connected && !previouslyConnected && this.authRequired) {
 				await this.getAuthToken()
+			}
+
+			// If we are on air and have already got the presentation data, get presentation status
+			if (this.#status.onAir && this.#status.presentation !== null) {
+				await this.getStatus()
 			}
 		} catch (error: any) {
 			// Something went wrong obtaining on-air status - can't connect to Proclaim
@@ -261,6 +295,35 @@ export class ProclaimAPI {
 		})
 
 		return response.ok ? ((await response.json()) as Presentation) : null
+	}
+
+	private async getStatus(): Promise<void> {
+		const url = `http://${this.#ip}:52195/onair/statusChanged?localrevision=${this.#status.presentation?.localRevision}&step=0`
+		const response = await fetch(url, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				Onairsessionid: this.#status.sessionId,
+				...(this.authRequired && this.#status.authenticated ? { ProclaimAuthToken: this.#status.authToken } : {}),
+			},
+		})
+		if (!response.ok) {
+			this.#instance.log('warn', `Proclaim status request failed: ${response.status} ${response.statusText}`)
+			return
+		}
+		const data = (await response.json()) as PresentationStatus
+		if (data) {
+			this.#instance.log('debug', `Proclaim status: ${JSON.stringify(data, null, 2)}`)
+			this.#status.presentationId = data.presentationId
+			this.#status.presentationLocalRevision = data.presentationLocalRevision
+			this.#status.revision = data.status.revision
+			this.#status.itemId = data.status.itemId
+			this.#status.slideIndex = data.status.slideIndex
+			this.#status.quickScreenKind = data.status.quickScreenKind
+			this.#status.mediaState = data.status.mediaState
+		} else {
+			this.#instance.log('debug', 'Proclaim status: null')
+		}
 	}
 
 	private populatePresentationVariables(): void {
