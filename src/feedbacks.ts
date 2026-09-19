@@ -46,13 +46,13 @@ export const UpdateFeedbacks = function (self: ModuleInstance): void {
 				const serviceStartIndex = self.proclaimAPI.status.presentation?.serviceStartIndex ?? -1
 				const postServiceStartIndex = self.proclaimAPI.status.presentation?.postServiceStartIndex ?? -1
 				if (servicePart === 'pre-service') {
-					return itemIndex < warmupStartIndex
+					return self.proclaimAPI.status.onAir && itemIndex < warmupStartIndex
 				} else if (servicePart === 'warmup') {
-					return itemIndex >= warmupStartIndex && itemIndex < serviceStartIndex
+					return self.proclaimAPI.status.onAir && itemIndex >= warmupStartIndex && itemIndex < serviceStartIndex
 				} else if (servicePart === 'service') {
-					return itemIndex >= serviceStartIndex && itemIndex < postServiceStartIndex
+					return self.proclaimAPI.status.onAir && itemIndex >= serviceStartIndex && itemIndex < postServiceStartIndex
 				} else if (servicePart === 'post-service') {
-					return itemIndex >= postServiceStartIndex
+					return self.proclaimAPI.status.onAir && itemIndex >= postServiceStartIndex
 				}
 				return true
 			},

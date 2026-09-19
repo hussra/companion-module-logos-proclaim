@@ -43,6 +43,7 @@ export class ProclaimAPI {
 				on_air: onAir,
 			})
 			this.#instance.checkFeedbacks('on_air')
+			this.#instance.checkFeedbacks('in_service_part')
 		})
 
 		this.#status.on('sessionId:changed', (sessionId) => {
