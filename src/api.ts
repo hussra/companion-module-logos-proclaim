@@ -44,6 +44,18 @@ export class ProclaimAPI {
 			})
 			this.#instance.checkFeedbacks('on_air')
 			this.#instance.checkFeedbacks('in_service_part')
+
+			// Clear the presentation and presentation status when we go off air
+			if (!onAir) {
+				this.#status.presentation = null
+				this.#status.presentationId = ''
+				this.#status.presentationLocalRevision = 0
+				this.#status.revision = 0
+				this.#status.itemId = ''
+				this.#status.slideIndex = 0
+				this.#status.quickScreenKind = ''
+				this.#status.mediaState = ''
+			}
 		})
 
 		this.#status.on('sessionId:changed', (sessionId) => {
@@ -193,7 +205,27 @@ export class ProclaimAPI {
 
 			// If we are on air and have already got the presentation data, get presentation status
 			if (this.#status.onAir && this.#status.presentation !== null) {
-				await this.getStatus()
+				const presentationStatus = await this.getPresentationStatus()
+
+				if (presentationStatus !== null) {
+					this.#instance.log('debug', `Proclaim status: ${JSON.stringify(data, null, 2)}`)
+					this.#status.presentationId = presentationStatus.presentationId
+					this.#status.presentationLocalRevision = presentationStatus.presentationLocalRevision
+					this.#status.revision = presentationStatus.status.revision
+					this.#status.itemId = presentationStatus.status.itemId
+					this.#status.slideIndex = presentationStatus.status.slideIndex
+					this.#status.quickScreenKind = presentationStatus.status.quickScreenKind
+					this.#status.mediaState = presentationStatus.status.mediaState
+				} else {
+					this.#instance.log('debug', 'Proclaim status: null')
+					this.#status.presentationId = ''
+					this.#status.presentationLocalRevision = 0
+					this.#status.revision = 0
+					this.#status.itemId = ''
+					this.#status.slideIndex = 0
+					this.#status.quickScreenKind = ''
+					this.#status.mediaState = ''
+				}
 			}
 		} catch (error: any) {
 			// Something went wrong obtaining on-air status - can't connect to Proclaim
@@ -302,7 +334,7 @@ export class ProclaimAPI {
 		return response.ok ? ((await response.json()) as Presentation) : null
 	}
 
-	private async getStatus(): Promise<void> {
+	private async getPresentationStatus(): Promise<PresentationStatus | null> {
 		const url = `http://${this.#ip}:52195/onair/statusChanged?localrevision=${this.#status.presentation?.localRevision}&step=0`
 		const response = await fetch(url, {
 			method: 'GET',
@@ -314,21 +346,9 @@ export class ProclaimAPI {
 		})
 		if (!response.ok) {
 			this.#instance.log('warn', `Proclaim status request failed: ${response.status} ${response.statusText}`)
-			return
+			return null
 		}
-		const data = (await response.json()) as PresentationStatus
-		if (data) {
-			this.#instance.log('debug', `Proclaim status: ${JSON.stringify(data, null, 2)}`)
-			this.#status.presentationId = data.presentationId
-			this.#status.presentationLocalRevision = data.presentationLocalRevision
-			this.#status.revision = data.status.revision
-			this.#status.itemId = data.status.itemId
-			this.#status.slideIndex = data.status.slideIndex
-			this.#status.quickScreenKind = data.status.quickScreenKind
-			this.#status.mediaState = data.status.mediaState
-		} else {
-			this.#instance.log('debug', 'Proclaim status: null')
-		}
+		return (await response.json()) as PresentationStatus
 	}
 
 	private populatePresentationVariables(): void {
