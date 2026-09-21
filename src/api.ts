@@ -55,6 +55,7 @@ export class ProclaimAPI {
 				this.#status.slideIndex = 0
 				this.#status.quickScreenKind = ''
 				this.#status.mediaState = ''
+				this.#status.currentItemIndex = -1
 			}
 		})
 
@@ -80,7 +81,7 @@ export class ProclaimAPI {
 		this.#status.on('itemId:changed', (itemId) => {
 			this.#instance.log('debug', `Proclaim itemId status changed: ${itemId}`)
 			const currentItemIndex = this.#status.presentation?.serviceItems.findIndex((item) => item.id === itemId)
-			if (currentItemIndex !== undefined) {
+			if (currentItemIndex !== undefined && currentItemIndex !== -1) {
 				this.#status.currentItemIndex = currentItemIndex
 				const currentItem = this.#status.presentation?.serviceItems[currentItemIndex] as ServiceItem
 				this.#instance.setVariableValues({
@@ -92,7 +93,7 @@ export class ProclaimAPI {
 			} else {
 				this.#status.currentItemIndex = -1
 				this.#instance.setVariableValues({
-					item_id: '',
+					item_id: itemId || '',
 					item_title: '',
 					slide_count: 0,
 				})
@@ -208,7 +209,7 @@ export class ProclaimAPI {
 				const presentationStatus = await this.getPresentationStatus()
 
 				if (presentationStatus !== null) {
-					this.#instance.log('debug', `Proclaim status: ${JSON.stringify(data, null, 2)}`)
+					this.#instance.log('debug', `Proclaim status: ${JSON.stringify(presentationStatus, null, 2)}`)
 					this.#status.presentationId = presentationStatus.presentationId
 					this.#status.presentationLocalRevision = presentationStatus.presentationLocalRevision
 					this.#status.revision = presentationStatus.status.revision
