@@ -65,7 +65,11 @@ export interface PresentationStatus {
 
 export enum QuickScreenKind {
 	None = 'None',
-	// More to follow - pending availability of API docs
+	NoText = 'NoText',
+	Logo = 'Logo',
+	Blank = 'Blank',
+	Custom = 'Custom',
+	OnScreenBible = 'OnScreenBible',
 }
 
 export enum MediaState {
