@@ -1,6 +1,6 @@
 import { CompanionActionDefinitions } from '@companion-module/base'
 import type { ModuleInstance } from './main.js'
-import { SONG_PARTS, SIMPLE_ACTIONS, CUSTOM_QUICK_SCREEN_COUNT } from './refdata.js'
+import { SONG_PARTS, SIMPLE_ACTIONS, CUSTOM_QUICK_SCREEN_COUNT, ServicePart } from './refdata.js'
 
 export const UpdateActions = function (self: ModuleInstance): void {
 	const actions: CompanionActionDefinitions = {
@@ -114,6 +114,18 @@ export const UpdateActions = function (self: ModuleInstance): void {
 			options: [],
 		}
 	}
+
+	Object.keys(ServicePart).forEach((key) => {
+		const name = `Start ${ServicePart[key as keyof typeof ServicePart]}`
+		const id = name.split(' ').join('_').toLowerCase()
+		actions[id] = {
+			name: name,
+			callback: async () => {
+				await self.proclaimAPI.sendAppCommand(`${name.split(' ').join('')}`)
+			},
+			options: [],
+		}
+	})
 
 	self.setActionDefinitions(actions)
 }

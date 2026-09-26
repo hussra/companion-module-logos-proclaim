@@ -53,28 +53,6 @@ export const SIMPLE_ACTIONS: { name: string; category: string; text?: string; si
 		text: 'Next\nItem',
 	},
 
-	// Service Parts
-	{
-		name: 'Start Pre Service',
-		category: 'Service Parts',
-		text: 'Pre Service',
-	},
-	{
-		name: 'Start Warm Up',
-		category: 'Service Parts',
-		text: 'Warm Up',
-	},
-	{
-		name: 'Start Service',
-		category: 'Service Parts',
-		text: 'Service',
-	},
-	{
-		name: 'Start Post Service',
-		category: 'Service Parts',
-		text: 'Post Service',
-	},
-
 	// Media
 	{
 		name: 'Previous Audio Item',
@@ -180,3 +158,11 @@ export const SIMPLE_ACTIONS: { name: string; category: string; text?: string; si
 		text: 'Last Shown',
 	},
 ]
+
+// Service Parts
+export enum ServicePart {
+	PRE_SERVICE = 'Pre Service',
+	WARMUP = 'Warm Up',
+	SERVICE = 'Service',
+	POST_SERVICE = 'Post Service',
+}

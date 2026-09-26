@@ -1,5 +1,6 @@
 import { combineRgb } from '@companion-module/base'
 import type { ModuleInstance } from './main.js'
+import { ServicePart } from './refdata.js'
 
 export const UpdateFeedbacks = function (self: ModuleInstance): void {
 	self.setFeedbackDefinitions({
@@ -31,30 +32,37 @@ export const UpdateFeedbacks = function (self: ModuleInstance): void {
 					type: 'dropdown',
 					label: 'Service Part',
 					default: 'service',
-					choices: [
-						{ id: 'pre-service', label: 'Pre-Service' },
-						{ id: 'warmup', label: 'Warmup' },
-						{ id: 'service', label: 'Service' },
-						{ id: 'post-service', label: 'Post-Service' },
-					],
+					choices: Object.keys(ServicePart).map((key) => {
+						return { id: key, label: ServicePart[key as keyof typeof ServicePart] }
+					}),
 				},
 			],
 			callback: (event) => {
-				const servicePart = event.options.servicePart
+				const servicePart = ServicePart[event.options.servicePart as keyof typeof ServicePart]
+
 				const itemIndex = self.proclaimAPI.status.currentItemIndex
 				const warmupStartIndex = self.proclaimAPI.status.presentation?.warmupStartIndex ?? -1
 				const serviceStartIndex = self.proclaimAPI.status.presentation?.serviceStartIndex ?? -1
 				const postServiceStartIndex = self.proclaimAPI.status.presentation?.postServiceStartIndex ?? -1
-				if (servicePart === 'pre-service') {
-					return self.proclaimAPI.status.onAir && itemIndex < warmupStartIndex
-				} else if (servicePart === 'warmup') {
-					return self.proclaimAPI.status.onAir && itemIndex >= warmupStartIndex && itemIndex < serviceStartIndex
-				} else if (servicePart === 'service') {
-					return self.proclaimAPI.status.onAir && itemIndex >= serviceStartIndex && itemIndex < postServiceStartIndex
-				} else if (servicePart === 'post-service') {
-					return self.proclaimAPI.status.onAir && itemIndex >= postServiceStartIndex
+
+				// Bail if we haven't yet got the presentation data - prevents brief flash of wrong feedback when
+				// module first connecting
+				if (self.proclaimAPI.status.presentation == undefined) {
+					return false
 				}
-				return true
+
+				switch (servicePart) {
+					case ServicePart.PRE_SERVICE:
+						return self.proclaimAPI.status.onAir && itemIndex < warmupStartIndex
+					case ServicePart.WARMUP:
+						return self.proclaimAPI.status.onAir && itemIndex >= warmupStartIndex && itemIndex < serviceStartIndex
+					case ServicePart.SERVICE:
+						return self.proclaimAPI.status.onAir && itemIndex >= serviceStartIndex && itemIndex < postServiceStartIndex
+					case ServicePart.POST_SERVICE:
+						return self.proclaimAPI.status.onAir && itemIndex >= postServiceStartIndex
+					default:
+						return false
+				}
 			},
 		},
 	})

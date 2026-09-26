@@ -1,4 +1,4 @@
-import { SONG_PARTS, SIMPLE_ACTIONS, CUSTOM_QUICK_SCREEN_COUNT } from './refdata.js'
+import { SONG_PARTS, SIMPLE_ACTIONS, CUSTOM_QUICK_SCREEN_COUNT, ServicePart } from './refdata.js'
 import type { ModuleInstance } from './main.js'
 import { CompanionPresetDefinitions, combineRgb } from '@companion-module/base'
 
@@ -185,6 +185,44 @@ export const UpdatePresets = function (self: ModuleInstance): void {
 			}
 		}
 	}
+
+	// Service Parts
+	Object.keys(ServicePart).forEach((key) => {
+		const partName = ServicePart[key as keyof typeof ServicePart]
+		const id = `start_${partName.split(' ').join('_').toLowerCase()}`
+		presets[id] = {
+			type: 'button',
+			category: 'Service Parts',
+			name: partName,
+			style: {
+				...style,
+				text: partName,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: id,
+							options: {},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'in_service_part',
+					options: {
+						servicePart: key,
+					},
+					style: {
+						bgcolor: combineRgb(0, 255, 0),
+						color: combineRgb(0, 0, 0),
+					},
+				},
+			],
+		}
+	})
 
 	self.setPresetDefinitions(presets)
 }
