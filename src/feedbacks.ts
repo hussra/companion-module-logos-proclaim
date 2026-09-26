@@ -1,6 +1,6 @@
 import { combineRgb } from '@companion-module/base'
 import type { ModuleInstance } from './main.js'
-import { ServicePart } from './refdata.js'
+import { ServicePart } from './apiTypes.js'
 
 export const UpdateFeedbacks = function (self: ModuleInstance): void {
 	self.setFeedbackDefinitions({

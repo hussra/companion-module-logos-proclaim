@@ -76,3 +76,11 @@ export enum MediaState {
 	Playing = 'Playing',
 	// More to follow - pending availability of API docs
 }
+
+// Service Parts
+export enum ServicePart {
+	PRE_SERVICE = 'Pre Service',
+	WARMUP = 'Warm Up',
+	SERVICE = 'Service',
+	POST_SERVICE = 'Post Service',
+}

@@ -158,11 +158,3 @@ export const SIMPLE_ACTIONS: { name: string; category: string; text?: string; si
 		text: 'Last Shown',
 	},
 ]
-
-// Service Parts
-export enum ServicePart {
-	PRE_SERVICE = 'Pre Service',
-	WARMUP = 'Warm Up',
-	SERVICE = 'Service',
-	POST_SERVICE = 'Post Service',
-}
