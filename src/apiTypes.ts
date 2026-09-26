@@ -64,12 +64,12 @@ export interface PresentationStatus {
 }
 
 export enum QuickScreenKind {
-	None = 'None',
-	NoText = 'NoText',
-	Logo = 'Logo',
-	Blank = 'Blank',
-	Custom = 'Custom',
-	OnScreenBible = 'OnScreenBible',
+	NONE = 'None',
+	NO_TEXT = 'NoText',
+	LOGO = 'Logo',
+	BLANK = 'Blank',
+	CUSTOM = 'Custom',
+	ON_SCREEN_BIBLE = 'OnScreenBible',
 }
 
 export enum MediaState {

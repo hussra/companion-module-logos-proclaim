@@ -1,6 +1,6 @@
 import { combineRgb } from '@companion-module/base'
 import type { ModuleInstance } from './main.js'
-import { ServicePart } from './apiTypes.js'
+import { QuickScreenKind, ServicePart } from './apiTypes.js'
 
 export const UpdateFeedbacks = function (self: ModuleInstance): void {
 	self.setFeedbackDefinitions({
@@ -31,7 +31,7 @@ export const UpdateFeedbacks = function (self: ModuleInstance): void {
 					id: 'servicePart',
 					type: 'dropdown',
 					label: 'Service Part',
-					default: 'service',
+					default: 'SERVICE',
 					choices: Object.keys(ServicePart).map((key) => {
 						return { id: key, label: ServicePart[key as keyof typeof ServicePart] }
 					}),
@@ -63,6 +63,33 @@ export const UpdateFeedbacks = function (self: ModuleInstance): void {
 					default:
 						return false
 				}
+			},
+		},
+
+		quick_screen_active: {
+			name: 'Quick Screen Active',
+			type: 'boolean',
+			description: 'Whether or not a particular Quick Screen is active',
+			defaultStyle: {
+				bgcolor: combineRgb(255, 255, 0),
+				color: combineRgb(0, 0, 0),
+			},
+			options: [
+				{
+					id: 'quickScreen',
+					type: 'dropdown',
+					label: 'Quick Screen',
+					default: 'NONE',
+					choices: Object.keys(QuickScreenKind).map((key) => {
+						return { id: key, label: QuickScreenKind[key as keyof typeof QuickScreenKind] }
+					}),
+				},
+			],
+			callback: (event) => {
+				const quickScreen: QuickScreenKind = QuickScreenKind[event.options.quickScreen as keyof typeof QuickScreenKind]
+				self.log('debug', `Checking to see if we are in QuickScreen kind ${quickScreen}`)
+				self.log('debug', `Actual current quickscreen is ${self.proclaimAPI.status.quickScreenKind}`)
+				return quickScreen == self.proclaimAPI.status.quickScreenKind
 			},
 		},
 	})

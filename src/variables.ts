@@ -1,3 +1,4 @@
+import { QuickScreenKind } from './apiTypes.js'
 import type { ModuleInstance } from './main.js'
 
 export const UpdateVariableDefinitions = function (self: ModuleInstance): void {
@@ -17,6 +18,7 @@ export const UpdateVariableDefinitions = function (self: ModuleInstance): void {
 		{ variableId: 'item_count', name: 'Number of Service Items in Current Presentation' },
 		{ variableId: 'slide_index', name: 'Current Slide within Current Service Item' },
 		{ variableId: 'slide_count', name: 'Number of Slides within Current Service Item' },
+		{ variableId: 'quick_screen_kind', name: 'Currently active Quick Screen' },
 	])
 }
 
@@ -37,5 +39,6 @@ export const InitializeVariables = function (self: ModuleInstance): void {
 		item_count: 0,
 		slide_index: 1,
 		slide_count: 0,
+		quick_screen_kind: QuickScreenKind.NONE,
 	})
 }

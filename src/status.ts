@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { Presentation } from './apiTypes.js'
+import { Presentation, QuickScreenKind } from './apiTypes.js'
 
 interface ProclaimEvents {
 	'configIsValid:changed': [configIsValid: boolean]
@@ -37,7 +37,7 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 	#itemId: string
 	#currentItemIndex: number
 	#slideIndex: number
-	#quickScreenKind: string
+	#quickScreenKind: QuickScreenKind
 	#mediaState: string
 
 	constructor() {
@@ -55,7 +55,7 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 		this.#itemId = ''
 		this.#currentItemIndex = -1
 		this.#slideIndex = 0
-		this.#quickScreenKind = ''
+		this.#quickScreenKind = QuickScreenKind.NONE
 		this.#mediaState = ''
 	}
 
@@ -202,11 +202,11 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 		}
 	}
 
-	get quickScreenKind(): string {
+	get quickScreenKind(): QuickScreenKind {
 		return this.#quickScreenKind
 	}
 
-	set quickScreenKind(value: string) {
+	set quickScreenKind(value: QuickScreenKind) {
 		if (this.#quickScreenKind !== value) {
 			this.#quickScreenKind = value
 			this.emit('quickScreenKind:changed', value)

@@ -7,6 +7,7 @@ import { InitializeVariables, UpdateVariableDefinitions } from './variables.js'
 import { UpdatePresets } from './presets.js'
 import { ProclaimAPI } from './api.js'
 import { ServiceItem } from './apiTypes.js'
+import { ticksToUnixTime } from './util.js'
 
 export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 	config!: ModuleConfig // Set up in init()
@@ -98,8 +99,8 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 				presentation_group_name: presentation ? presentation.groupName : '',
 				presentation_group_id: presentation ? presentation.groupId : '',
 				presentation_aspect_ratio: presentation ? presentation.aspectRatio : '',
-				presentation_date: presentation ? this.ticksToUnixTime(presentation.dateGiven) : '',
-				presentation_start_time: presentation ? this.ticksToUnixTime(presentation.startTime) : '',
+				presentation_date: presentation ? ticksToUnixTime(presentation.dateGiven) : '',
+				presentation_start_time: presentation ? ticksToUnixTime(presentation.startTime) : '',
 				item_count: presentation ? presentation.serviceItems.length : 0,
 			})
 		})
@@ -129,11 +130,14 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 				slide_index: slideIndex + 1, // Convert from 0-based to 1-based for user display
 			})
 		})
-	}
 
-	// Proclaim timestamps are .NET ticks - convert them to a Unix timestamp
-	private ticksToUnixTime(tick: number): number {
-		return (tick - 621355968000000000) / 10000
+		proclaimAPI.status.on('quickScreenKind:changed', (quickScreenKind) => {
+			this.log('debug', 'Quick screen kind changed to ' + quickScreenKind)
+			this.setVariableValues({
+				quick_screen_kind: quickScreenKind,
+			})
+			this.checkFeedbacks('quick_screen_active')
+		})
 	}
 }
 

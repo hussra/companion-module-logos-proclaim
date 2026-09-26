@@ -2,7 +2,7 @@ import { InstanceStatus } from '@companion-module/base'
 import { fetch } from 'undici'
 import { ModuleInstance } from './main.js'
 import { ProclaimStatus } from './status.js'
-import { Presentation, PresentationStatus, ProclaimAuthResponse } from './apiTypes.js'
+import { Presentation, PresentationStatus, ProclaimAuthResponse, QuickScreenKind } from './apiTypes.js'
 
 // Handle the interaction with Proclaim
 export class ProclaimAPI {
@@ -87,7 +87,7 @@ export class ProclaimAPI {
 				this.#status.revision = 0
 				this.#status.itemId = ''
 				this.#status.slideIndex = -1
-				this.#status.quickScreenKind = ''
+				this.#status.quickScreenKind = QuickScreenKind.NONE
 				this.#status.mediaState = ''
 				this.#status.currentItemIndex = -1
 			}
@@ -173,7 +173,7 @@ export class ProclaimAPI {
 				const presentationStatus = await this.getPresentationStatus()
 
 				if (presentationStatus !== null) {
-					this.#instance.log('debug', `Proclaim status: ${JSON.stringify(presentationStatus, null, 2)}`)
+					//this.#instance.log('debug', `Proclaim status: ${JSON.stringify(presentationStatus, null, 2)}`)
 					this.#status.presentationId = presentationStatus.presentationId
 					this.#status.presentationLocalRevision = presentationStatus.presentationLocalRevision
 					this.#status.revision = presentationStatus.status.revision
@@ -182,13 +182,13 @@ export class ProclaimAPI {
 					this.#status.quickScreenKind = presentationStatus.status.quickScreenKind
 					this.#status.mediaState = presentationStatus.status.mediaState
 				} else {
-					this.#instance.log('debug', 'Proclaim status: null')
+					//this.#instance.log('debug', 'Proclaim status: null')
 					this.#status.presentationId = ''
 					this.#status.presentationLocalRevision = 0
 					this.#status.revision = 0
 					this.#status.itemId = ''
 					this.#status.slideIndex = -1
-					this.#status.quickScreenKind = ''
+					this.#status.quickScreenKind = QuickScreenKind.NONE
 					this.#status.mediaState = ''
 				}
 			}
