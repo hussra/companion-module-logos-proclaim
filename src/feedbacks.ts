@@ -87,8 +87,6 @@ export const UpdateFeedbacks = function (self: ModuleInstance): void {
 			],
 			callback: (event) => {
 				const quickScreen: QuickScreenKind = QuickScreenKind[event.options.quickScreen as keyof typeof QuickScreenKind]
-				self.log('debug', `Checking to see if we are in QuickScreen kind ${quickScreen}`)
-				self.log('debug', `Actual current quickscreen is ${self.proclaimAPI.status.quickScreenKind}`)
 				return quickScreen == self.proclaimAPI.status.quickScreenKind
 			},
 		},
