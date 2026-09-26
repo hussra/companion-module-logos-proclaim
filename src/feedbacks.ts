@@ -86,8 +86,9 @@ export const UpdateFeedbacks = function (self: ModuleInstance): void {
 				},
 			],
 			callback: (event) => {
-				const quickScreen: QuickScreenKind = QuickScreenKind[event.options.quickScreen as keyof typeof QuickScreenKind]
-				return quickScreen == self.proclaimAPI.status.quickScreenKind
+				const feedbackQuickScreenKind: QuickScreenKind =
+					QuickScreenKind[event.options.quickScreen as keyof typeof QuickScreenKind]
+				return feedbackQuickScreenKind == self.proclaimAPI.status.quickScreenKind
 			},
 		},
 	})
