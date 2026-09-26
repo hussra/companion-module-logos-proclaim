@@ -100,6 +100,7 @@ export class ProclaimAPI {
 		})
 
 		this.#status.on('itemId:changed', (itemId) => {
+			// TODO: Handle quick screens better here
 			const currentItemIndex = this.#status.presentation?.serviceItems.findIndex((item) => item.id === itemId)
 			if (currentItemIndex !== undefined && currentItemIndex !== -1) {
 				this.#status.currentItemIndex = currentItemIndex
