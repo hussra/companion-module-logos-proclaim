@@ -1,5 +1,7 @@
 // Reference data used in setting up actions and presets
 
+import { QuickScreenKind } from './apiTypes.js'
+
 // Song parts - used in the go_to_song_part action and in constructing its presets
 export const SONG_PARTS: { id: number; label: string; displayLabel?: string }[] = [
 	{ id: 0, label: 'Verse' },
@@ -156,5 +158,32 @@ export const SIMPLE_ACTIONS: { name: string; category: string; text?: string; si
 		name: 'Show Last Slide',
 		category: 'Quick Screens',
 		text: 'Last Shown',
+	},
+]
+
+// Quick screens that can be toggled on and off
+export const TOGGLE_QUICK_SCREEN_ACTIONS: {
+	name: string
+	onAppCommand: string
+	offAppCommand: string
+	feedback: QuickScreenKind
+}[] = [
+	{
+		name: 'Blank',
+		onAppCommand: 'ShowBlankQuickScreen',
+		offAppCommand: 'ShowLastSlide',
+		feedback: QuickScreenKind.BLANK,
+	},
+	{
+		name: 'Logo',
+		onAppCommand: 'ShowLogoQuickScreen',
+		offAppCommand: 'ShowLastSlide',
+		feedback: QuickScreenKind.LOGO,
+	},
+	{
+		name: 'No Text',
+		onAppCommand: 'ShowNoTextQuickScreen',
+		offAppCommand: 'ShowText',
+		feedback: QuickScreenKind.NO_TEXT,
 	},
 ]

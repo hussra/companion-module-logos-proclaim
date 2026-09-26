@@ -1,7 +1,7 @@
 import { CompanionActionDefinitions } from '@companion-module/base'
 import type { ModuleInstance } from './main.js'
-import { SONG_PARTS, SIMPLE_ACTIONS, CUSTOM_QUICK_SCREEN_COUNT } from './refdata.js'
-import { ServicePart } from './apiTypes.js'
+import { SONG_PARTS, SIMPLE_ACTIONS, CUSTOM_QUICK_SCREEN_COUNT, TOGGLE_QUICK_SCREEN_ACTIONS } from './refdata.js'
+import { QuickScreenKind, ServicePart } from './apiTypes.js'
 
 export const UpdateActions = function (self: ModuleInstance): void {
 	const actions: CompanionActionDefinitions = {
@@ -100,6 +100,27 @@ export const UpdateActions = function (self: ModuleInstance): void {
 				await self.proclaimAPI.sendAppCommand('ShowCustomQuickScreen', event.options.num as number)
 			},
 		},
+
+		toggle_custom_quick_screen: {
+			name: 'Toggle Custom Quick Screen',
+			options: [
+				{
+					id: 'num',
+					type: 'number',
+					label: 'Custom Quick Screen Number',
+					default: 1,
+					min: 1,
+					max: CUSTOM_QUICK_SCREEN_COUNT,
+				},
+			],
+			callback: async (event) => {
+				if (QuickScreenKind.CUSTOM == self.proclaimAPI.status.quickScreenKind) {
+					await self.proclaimAPI.sendAppCommand('ShowLastSlide')
+				} else {
+					await self.proclaimAPI.sendAppCommand('ShowCustomQuickScreen', event.options.num as number)
+				}
+			},
+		},
 	}
 
 	// Add simple actions, using the list from refdata.js
@@ -116,6 +137,7 @@ export const UpdateActions = function (self: ModuleInstance): void {
 		}
 	}
 
+	// Add Service Part actions
 	Object.keys(ServicePart).forEach((key) => {
 		const name = `Start ${ServicePart[key as keyof typeof ServicePart]}`
 		const id = name.split(' ').join('_').toLowerCase()
@@ -127,6 +149,26 @@ export const UpdateActions = function (self: ModuleInstance): void {
 			options: [],
 		}
 	})
+
+	// Add Toggle Quick Screen actions
+	for (const action of TOGGLE_QUICK_SCREEN_ACTIONS) {
+		self.log('debug', `Add toggle quick screen action for ${action.name}`)
+		const id = `toggle_${action.name.split(' ').join('_').toLowerCase()}_quick_screen`
+		self.log('debug', id)
+		actions[id] = {
+			name: `Toggle ${action.name} Quick Screen`,
+			options: [],
+			callback: async () => {
+				if (action.feedback == self.proclaimAPI.status.quickScreenKind) {
+					await self.proclaimAPI.sendAppCommand(action.offAppCommand)
+				} else {
+					await self.proclaimAPI.sendAppCommand(action.onAppCommand)
+				}
+			},
+		}
+	}
+
+	// Add Toggle Custom Quick Screen actions
 
 	self.setActionDefinitions(actions)
 }
