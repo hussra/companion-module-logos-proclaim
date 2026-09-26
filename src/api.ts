@@ -2,7 +2,7 @@ import { InstanceStatus } from '@companion-module/base'
 import { fetch } from 'undici'
 import { ModuleInstance } from './main.js'
 import { ProclaimStatus } from './status.js'
-import { Presentation, PresentationStatus, ProclaimAuthResponse, ServiceItem } from './apiTypes.js'
+import { Presentation, PresentationStatus, ProclaimAuthResponse } from './apiTypes.js'
 
 // Handle the interaction with Proclaim
 export class ProclaimAPI {
@@ -22,91 +22,7 @@ export class ProclaimAPI {
 
 		this.#pollInterval = undefined // The interval ID for polling On Air status
 
-		this.#status.on('configIsValid:changed', (configIsValid) => {
-			this.#instance.log('debug', `Proclaim configIsValid status changed: ${configIsValid}`)
-			this.updateInstanceStatus()
-		})
-
-		this.#status.on('connected:changed', (connected) => {
-			this.#instance.log('debug', `Proclaim connected status changed: ${connected}`)
-			this.updateInstanceStatus()
-		})
-
-		this.#status.on('authenticated:changed', (authenticated) => {
-			this.#instance.log('debug', `Proclaim authenticated status changed: ${authenticated}`)
-			this.updateInstanceStatus()
-		})
-
-		this.#status.on('onAir:changed', (onAir) => {
-			this.#instance.log('debug', `Proclaim onAir status changed: ${onAir}`)
-			this.#instance.setVariableValues({
-				on_air: onAir,
-			})
-			this.#instance.checkFeedbacks('on_air')
-			this.#instance.checkFeedbacks('in_service_part')
-
-			// Clear the presentation and presentation status when we go off air
-			if (!onAir) {
-				this.#status.presentation = null
-				this.#status.presentationId = ''
-				this.#status.presentationLocalRevision = 0
-				this.#status.revision = 0
-				this.#status.itemId = ''
-				this.#status.slideIndex = 0
-				this.#status.quickScreenKind = ''
-				this.#status.mediaState = ''
-				this.#status.currentItemIndex = -1
-			}
-		})
-
-		this.#status.on('sessionId:changed', (sessionId) => {
-			this.#instance.log('debug', `Proclaim sessionId status changed: ${sessionId}`)
-			this.#instance.setVariableValues({
-				session_id: sessionId,
-			})
-
-			void this.getPresentation().then((presentation) => {
-				this.#status.presentation = presentation
-			})
-		})
-
-		this.#status.on('presentation:changed', (presentation) => {
-			this.#instance.log('debug', presentation ? JSON.stringify(presentation, null, 2) : 'null')
-			this.populatePresentationVariables()
-		})
-
-		// TODO: Watch for presentionId changing, clear session ID and presentation to force reload
-		// TODO: Watch for presentationLocalRevision changing and reload presentation
-
-		this.#status.on('itemId:changed', (itemId) => {
-			this.#instance.log('debug', `Proclaim itemId status changed: ${itemId}`)
-			const currentItemIndex = this.#status.presentation?.serviceItems.findIndex((item) => item.id === itemId)
-			if (currentItemIndex !== undefined && currentItemIndex !== -1) {
-				this.#status.currentItemIndex = currentItemIndex
-				const currentItem = this.#status.presentation?.serviceItems[currentItemIndex] as ServiceItem
-				this.#instance.setVariableValues({
-					item_id: currentItem.id,
-					item_title: currentItem.title,
-					item_index: currentItemIndex,
-					slide_count: currentItem.slides.length,
-				})
-			} else {
-				this.#status.currentItemIndex = -1
-				this.#instance.setVariableValues({
-					item_id: itemId || '',
-					item_title: '',
-					slide_count: 0,
-				})
-			}
-			this.#instance.checkFeedbacks('in_service_part')
-		})
-
-		this.#status.on('slideIndex:changed', (slideIndex) => {
-			this.#instance.log('debug', `Proclaim slideIndex status changed: ${slideIndex}`)
-			this.#instance.setVariableValues({
-				slide_index: slideIndex + 1, // Convert from 0-based to 1-based for user display
-			})
-		})
+		this.addEventListeners()
 	}
 
 	get status(): ProclaimStatus {
@@ -146,6 +62,54 @@ export class ProclaimAPI {
 		if (this.#pollInterval !== undefined) {
 			clearInterval(this.#pollInterval)
 		}
+	}
+
+	// Event listeners to handle status changes
+	private addEventListeners(): void {
+		this.#status.on('configIsValid:changed', (_configIsValid) => {
+			this.updateInstanceStatus()
+		})
+
+		this.#status.on('connected:changed', (_connected) => {
+			this.updateInstanceStatus()
+		})
+
+		this.#status.on('authenticated:changed', (_authenticated) => {
+			this.updateInstanceStatus()
+		})
+
+		this.#status.on('onAir:changed', (onAir) => {
+			// Clear the presentation and presentation status when we go off air
+			if (!onAir) {
+				this.#status.presentation = null
+				this.#status.presentationId = ''
+				this.#status.presentationLocalRevision = 0
+				this.#status.revision = 0
+				this.#status.itemId = ''
+				this.#status.slideIndex = -1
+				this.#status.quickScreenKind = ''
+				this.#status.mediaState = ''
+				this.#status.currentItemIndex = -1
+			}
+		})
+
+		this.#status.on('sessionId:changed', (_sessionId) => {
+			void this.getPresentation().then((presentation) => {
+				this.#status.presentation = presentation
+			})
+		})
+
+		this.#status.on('itemId:changed', (itemId) => {
+			const currentItemIndex = this.#status.presentation?.serviceItems.findIndex((item) => item.id === itemId)
+			if (currentItemIndex !== undefined && currentItemIndex !== -1) {
+				this.#status.currentItemIndex = currentItemIndex
+			} else {
+				this.#status.currentItemIndex = -1
+			}
+		})
+
+		// TODO: Watch for presentionId changing, clear session ID and presentation to force reload
+		// TODO: Watch for presentationLocalRevision changing and reload presentation
 	}
 
 	// Look at the various status flags and determine the overall module connection status
@@ -223,7 +187,7 @@ export class ProclaimAPI {
 					this.#status.presentationLocalRevision = 0
 					this.#status.revision = 0
 					this.#status.itemId = ''
-					this.#status.slideIndex = 0
+					this.#status.slideIndex = -1
 					this.#status.quickScreenKind = ''
 					this.#status.mediaState = ''
 				}
@@ -350,23 +314,5 @@ export class ProclaimAPI {
 			return null
 		}
 		return (await response.json()) as PresentationStatus
-	}
-
-	private populatePresentationVariables(): void {
-		const presentation = this.#status.presentation
-		this.#instance.setVariableValues({
-			presentation_title: presentation ? presentation.title : '',
-			presentation_id: presentation ? presentation.id : '',
-			presentation_group_name: presentation ? presentation.groupName : '',
-			presentation_group_id: presentation ? presentation.groupId : '',
-			presentation_aspect_ratio: presentation ? presentation.aspectRatio : '',
-			presentation_date: presentation ? this.ticksToUnixTime(presentation.dateGiven) : '',
-			presentation_start_time: presentation ? this.ticksToUnixTime(presentation.startTime) : '',
-			item_count: presentation ? presentation.serviceItems.length : 0,
-		})
-	}
-
-	private ticksToUnixTime(tick: number): number {
-		return (tick - 621355968000000000) / 10000
 	}
 }

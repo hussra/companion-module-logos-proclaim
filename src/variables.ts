@@ -19,3 +19,23 @@ export const UpdateVariableDefinitions = function (self: ModuleInstance): void {
 		{ variableId: 'slide_count', name: 'Number of Slides within Current Service Item' },
 	])
 }
+
+export const InitializeVariables = function (self: ModuleInstance): void {
+	self.setVariableValues({
+		on_air: false,
+		session_id: '',
+		presentation_title: '',
+		presentation_id: '',
+		presentation_group_name: '',
+		presentation_group_id: '',
+		presentation_aspect_ratio: '',
+		presentation_date: '',
+		presentation_start_time: '',
+		item_id: '',
+		item_title: '',
+		item_index: 0,
+		item_count: 0,
+		slide_index: 1,
+		slide_count: 0,
+	})
+}
