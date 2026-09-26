@@ -1,5 +1,5 @@
-import { SONG_PARTS, SIMPLE_ACTIONS, CUSTOM_QUICK_SCREEN_COUNT } from './refdata.js'
-import { ServicePart } from './apiTypes.js'
+import { SONG_PARTS, SIMPLE_ACTIONS, CUSTOM_QUICK_SCREEN_COUNT, TOGGLE_QUICK_SCREEN_ACTIONS } from './refdata.js'
+import { QuickScreenKind, ServicePart } from './apiTypes.js'
 import type { ModuleInstance } from './main.js'
 import { CompanionPresetDefinitions, combineRgb } from '@companion-module/base'
 
@@ -67,8 +67,89 @@ export const UpdatePresets = function (self: ModuleInstance): void {
 		},
 	}
 
+	// Toggle quick screen presets
+	for (const action of TOGGLE_QUICK_SCREEN_ACTIONS) {
+		const id = `toggle_${action.name.split(' ').join('_').toLowerCase()}_quick_screen`
+		const name = action.name
+		const text: string = action.name
+		const size: number = 18
+		presets[id] = {
+			type: 'button',
+			category: 'Quick Screens',
+			name: name,
+			style: {
+				...style,
+				size: size,
+				text: text,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: id,
+							options: {},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'quick_screen_active',
+					options: {
+						quickScreen: Object.keys(QuickScreenKind)[Object.values(QuickScreenKind).indexOf(action.feedback)],
+					},
+					style: {
+						bgcolor: combineRgb(255, 255, 0),
+						color: combineRgb(0, 0, 0),
+					},
+				},
+			],
+		}
+	}
+
+	for (let i: number = 1; i <= CUSTOM_QUICK_SCREEN_COUNT; i++) {
+		presets[`toggle_custom_quick_screen_${i}`] = {
+			type: 'button',
+			category: 'Quick Screens',
+			name: `Toggle Custom Quick Screen ${i}`,
+			style: {
+				...style,
+				text: `Custom ${i}`,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'toggle_custom_quick_screen',
+							options: {
+								num: i,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [
+				{
+					feedbackId: 'quick_screen_active',
+					options: {
+						quickScreen: Object.keys(QuickScreenKind)[Object.values(QuickScreenKind).indexOf(QuickScreenKind.CUSTOM)],
+					},
+					style: {
+						bgcolor: combineRgb(255, 255, 0),
+						color: combineRgb(0, 0, 0),
+					},
+				},
+			],
+		}
+	}
+
 	// Add simple action presets, using the list from refdata.js
 	for (const preset of SIMPLE_ACTIONS) {
+		if (preset.createPreset == false) {
+			continue
+		}
 		const id = preset.name.split(' ').join('_').toLowerCase()
 		const name = preset.name
 		const category = preset.category
@@ -89,32 +170,6 @@ export const UpdatePresets = function (self: ModuleInstance): void {
 						{
 							actionId: id,
 							options: {},
-						},
-					],
-					up: [],
-				},
-			],
-			feedbacks: [],
-		}
-	}
-
-	for (let i: number = 1; i <= CUSTOM_QUICK_SCREEN_COUNT; i++) {
-		presets[`show_custom_quick_screen_${i}`] = {
-			type: 'button',
-			category: 'Quick Screens',
-			name: `Show Custom Quick Screen ${i}`,
-			style: {
-				...style,
-				text: `Custom ${i}`,
-			},
-			steps: [
-				{
-					down: [
-						{
-							actionId: 'show_custom_quick_screen',
-							options: {
-								num: i,
-							},
 						},
 					],
 					up: [],

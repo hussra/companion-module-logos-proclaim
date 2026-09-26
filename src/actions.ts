@@ -152,9 +152,7 @@ export const UpdateActions = function (self: ModuleInstance): void {
 
 	// Add Toggle Quick Screen actions
 	for (const action of TOGGLE_QUICK_SCREEN_ACTIONS) {
-		self.log('debug', `Add toggle quick screen action for ${action.name}`)
 		const id = `toggle_${action.name.split(' ').join('_').toLowerCase()}_quick_screen`
-		self.log('debug', id)
 		actions[id] = {
 			name: `Toggle ${action.name} Quick Screen`,
 			options: [],
@@ -167,8 +165,6 @@ export const UpdateActions = function (self: ModuleInstance): void {
 			},
 		}
 	}
-
-	// Add Toggle Custom Quick Screen actions
 
 	self.setActionDefinitions(actions)
 }

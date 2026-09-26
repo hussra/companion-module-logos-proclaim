@@ -22,7 +22,14 @@ export const CUSTOM_QUICK_SCREEN_COUNT: number = 2
 // The preset text will be the name, unless overridden below
 // The preset text size will be 18, unless overridden below
 // The Proclaim API App Command will be the name converted to CamelCase, unless overridden below
-export const SIMPLE_ACTIONS: { name: string; category: string; text?: string; size?: number; appCommand?: string }[] = [
+export const SIMPLE_ACTIONS: {
+	name: string
+	category: string
+	text?: string
+	size?: number
+	appCommand?: string
+	createPreset?: boolean
+}[] = [
 	// On/Off Air
 	{
 		name: 'Go On Air',
@@ -99,16 +106,19 @@ export const SIMPLE_ACTIONS: { name: string; category: string; text?: string; si
 		name: 'Show Blank Quick Screen',
 		category: 'Quick Screens',
 		text: 'Blank',
+		createPreset: false,
 	},
 	{
 		name: 'Show Logo Quick Screen',
 		category: 'Quick Screens',
 		text: 'Logo',
+		createPreset: false,
 	},
 	{
 		name: 'Show No Text Quick Screen',
 		category: 'Quick Screens',
 		text: 'No Text',
+		createPreset: false,
 	},
 	{
 		name: 'Show Text',
