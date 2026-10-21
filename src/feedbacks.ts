@@ -1,6 +1,6 @@
 import { combineRgb } from '@companion-module/base'
 import type { ModuleInstance } from './main.js'
-import { QuickScreenKind, ServicePart } from './apiTypes.js'
+import { QuickScreenKind, ServiceItemKind, ServicePart } from './apiTypes.js'
 
 export const UpdateFeedbacks = function (self: ModuleInstance): void {
 	self.setFeedbackDefinitions({
@@ -63,6 +63,31 @@ export const UpdateFeedbacks = function (self: ModuleInstance): void {
 					default:
 						return false
 				}
+			},
+		},
+
+		item_kind: {
+			name: 'Item Kind',
+			type: 'boolean',
+			description: 'Whether or not a particular item kind is currently active',
+			defaultStyle: {
+				bgcolor: combineRgb(0, 0, 255),
+				color: combineRgb(255, 255, 255),
+			},
+			options: [
+				{
+					id: 'itemKind',
+					type: 'dropdown',
+					label: 'Item Kind',
+					default: 'SongLyrics',
+					choices: Object.keys(ServiceItemKind).map((key) => {
+						return { id: key, label: ServiceItemKind[key as keyof typeof ServiceItemKind] }
+					}),
+				},
+			],
+			callback: (event) => {
+				const feedbackItemKind = ServiceItemKind[event.options.itemKind as keyof typeof ServiceItemKind]
+				return feedbackItemKind == self.proclaimAPI.status.itemKind
 			},
 		},
 

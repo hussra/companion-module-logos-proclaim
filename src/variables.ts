@@ -18,6 +18,7 @@ export const UpdateVariableDefinitions = function (self: ModuleInstance): void {
 		{ variableId: 'item_count', name: 'Number of Service Items in Current Presentation' },
 		{ variableId: 'slide_index', name: 'Current Slide within Current Service Item' },
 		{ variableId: 'slide_count', name: 'Number of Slides within Current Service Item' },
+		{ variableId: 'item_kind', name: 'Current Service Item Kind' },
 		{ variableId: 'quick_screen_kind', name: 'Currently active Quick Screen' },
 	])
 }
@@ -39,6 +40,7 @@ export const InitializeVariables = function (self: ModuleInstance): void {
 		item_count: 0,
 		slide_index: 1,
 		slide_count: 0,
+		item_kind: '',
 		quick_screen_kind: QuickScreenKind.NONE,
 	})
 }

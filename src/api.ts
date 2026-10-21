@@ -87,6 +87,7 @@ export class ProclaimAPI {
 				this.#status.revision = 0
 				this.#status.itemId = ''
 				this.#status.slideIndex = -1
+				this.#status.itemKind = null
 				this.#status.quickScreenKind = QuickScreenKind.NONE
 				this.#status.mediaState = ''
 				this.#status.currentItemIndex = -1
@@ -102,10 +103,17 @@ export class ProclaimAPI {
 		this.#status.on('itemId:changed', (itemId) => {
 			// TODO: Handle quick screens better here
 			const currentItemIndex = this.#status.presentation?.serviceItems.findIndex((item) => item.id === itemId)
+			const currentItem = this.#status.presentation?.serviceItems[currentItemIndex ?? -1]
 			if (currentItemIndex !== undefined && currentItemIndex !== -1) {
 				this.#status.currentItemIndex = currentItemIndex
 			} else {
 				this.#status.currentItemIndex = -1
+			}
+
+			if (currentItem !== undefined) {
+				this.#status.itemKind = currentItem.kind
+			} else {
+				this.#status.itemKind = null
 			}
 		})
 
@@ -189,6 +197,7 @@ export class ProclaimAPI {
 					this.#status.revision = 0
 					this.#status.itemId = ''
 					this.#status.slideIndex = -1
+					this.#status.itemKind = null
 					this.#status.quickScreenKind = QuickScreenKind.NONE
 					this.#status.mediaState = ''
 				}

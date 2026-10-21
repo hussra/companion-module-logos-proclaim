@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { Presentation, QuickScreenKind } from './apiTypes.js'
+import { Presentation, QuickScreenKind, ServiceItemKind } from './apiTypes.js'
 
 interface ProclaimEvents {
 	'configIsValid:changed': [configIsValid: boolean]
@@ -15,6 +15,7 @@ interface ProclaimEvents {
 	'itemId:changed': [itemId: string]
 	'currentItemIndex:changed': [currentItemIndex: number]
 	'slideIndex:changed': [slideIndex: number]
+	'itemKind:changed': [serviceItemKind: ServiceItemKind | null]
 	'quickScreenKind:changed': [quickScreenKind: string]
 	'mediaState:changed': [mediaState: string]
 }
@@ -37,6 +38,7 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 	#itemId: string
 	#currentItemIndex: number
 	#slideIndex: number
+	#itemKind: ServiceItemKind | null
 	#quickScreenKind: QuickScreenKind
 	#mediaState: string
 
@@ -55,6 +57,7 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 		this.#itemId = ''
 		this.#currentItemIndex = -1
 		this.#slideIndex = 0
+		this.#itemKind = null
 		this.#quickScreenKind = QuickScreenKind.NONE
 		this.#mediaState = ''
 	}
@@ -199,6 +202,17 @@ export class ProclaimStatus extends EventEmitter<ProclaimEvents> {
 		if (this.#slideIndex !== value) {
 			this.#slideIndex = value
 			this.emit('slideIndex:changed', value)
+		}
+	}
+
+	get itemKind(): ServiceItemKind | null {
+		return this.#itemKind
+	}
+
+	set itemKind(value: ServiceItemKind | null) {
+		if (this.#itemKind !== value) {
+			this.#itemKind = value
+			this.emit('itemKind:changed', value)
 		}
 	}
 

@@ -131,6 +131,13 @@ export class ModuleInstance extends InstanceBase<ModuleConfig, ModuleSecrets> {
 			})
 		})
 
+		proclaimAPI.status.on('itemKind:changed', (itemKind) => {
+			this.setVariableValues({
+				item_kind: itemKind || '',
+			})
+			this.checkFeedbacks('item_kind')
+		})
+
 		proclaimAPI.status.on('quickScreenKind:changed', (quickScreenKind) => {
 			this.log('debug', 'Quick screen kind changed to ' + quickScreenKind)
 			this.setVariableValues({
