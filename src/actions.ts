@@ -59,6 +59,23 @@ export const UpdateActions = function (self: ModuleInstance): void {
 			},
 		},
 
+		go_to_song: {
+			name: 'Go To Song',
+			options: [
+				{
+					id: 'num',
+					type: 'number',
+					label: 'Song Number',
+					default: 1,
+					min: 1,
+					max: 254,
+				},
+			],
+			callback: async (event) => {
+				await self.proclaimAPI.sendAppCommand('GoToSong', event.options.num as number)
+			},
+		},
+
 		go_to_song_part: {
 			name: 'Go To Song Part',
 			options: [

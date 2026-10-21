@@ -179,6 +179,33 @@ export const UpdatePresets = function (self: ModuleInstance): void {
 		}
 	}
 
+	// Songs
+	for (let i: number = 1; i <= 10; i++) {
+		presets[`go_to_song_${i}`] = {
+			type: 'button',
+			category: 'Songs',
+			name: `Go To Song ${i}`,
+			style: {
+				...style,
+				text: `Song ${i}`,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'go_to_song',
+							options: {
+								num: i,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+	}
+
 	// Song Parts
 	for (const part of SONG_PARTS) {
 		const partId = part.id
@@ -186,7 +213,7 @@ export const UpdatePresets = function (self: ModuleInstance): void {
 		const displayLabel = part.displayLabel || part.label
 
 		if (label == 'Verse') {
-			for (let v = 1; v < 10; v++) {
+			for (let v: number = 1; v < 10; v++) {
 				const presetId = `song_part_${label.toLowerCase()}_${v}`
 				presets[presetId] = {
 					type: 'button',
