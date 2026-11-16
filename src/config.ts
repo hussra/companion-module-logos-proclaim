@@ -3,6 +3,7 @@ import { Regex, type SomeCompanionConfigField } from '@companion-module/base'
 export type ModuleConfig = {
 	ip: string
 	password?: string // Only when upgrading from a version that had the key in config - will be moved to secrets
+	layeredPresets: boolean
 }
 
 export type ModuleSecrets = {
@@ -41,6 +42,13 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 			width: 6,
 			isVisibleExpression: "$(options:ip) !== '127.0.0.1'",
 			//required: true,
+		},
+		{
+			type: 'checkbox',
+			id: 'layeredPresets',
+			label: 'Use New Layered Presets',
+			default: true,
+			width: 6,
 		},
 	]
 }

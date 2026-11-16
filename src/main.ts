@@ -63,6 +63,7 @@ export default class ModuleInstance extends InstanceBase<ModuleSchema> {
 		this.config = config
 		this.secrets = secrets
 		await this.proclaimAPI.configure(config.ip, secrets.password)
+		this.updatePresets()
 	}
 
 	getConfigFields(): SomeCompanionConfigField[] {

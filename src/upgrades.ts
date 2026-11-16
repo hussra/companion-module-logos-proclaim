@@ -4,12 +4,11 @@ import type {
 	CompanionStaticUpgradeScript,
 	CompanionUpgradeContext,
 } from '@companion-module/base'
-import type { ModuleConfig, ModuleSecrets } from './config.js'
+import { type ModuleConfig, type ModuleSecrets } from './config.js'
 
 export const UpgradeScripts: CompanionStaticUpgradeScript<ModuleConfig, ModuleSecrets>[] = [
-	/*
-	 * Place your upgrade scripts here
-	 * Remember that once it has been added it cannot be removed!
+	/**
+	 * Move password from config to secrets
 	 */
 	function (
 		context: CompanionUpgradeContext<ModuleConfig>,
@@ -19,10 +18,29 @@ export const UpgradeScripts: CompanionStaticUpgradeScript<ModuleConfig, ModuleSe
 			updatedConfig: {
 				ip: context.currentConfig.ip,
 				// Password will be removed - moving to secrets
+				layeredPresets: false,
 			},
 			updatedSecrets: {
 				password: context.currentConfig.password?.toString() || '',
 			},
+			updatedActions: [],
+			updatedFeedbacks: [],
+		}
+	},
+
+	/**
+	 * Add preset style
+	 */
+	function (
+		context: CompanionUpgradeContext<ModuleConfig>,
+		_props: CompanionStaticUpgradeProps<ModuleConfig, ModuleSecrets>,
+	): CompanionStaticUpgradeResult<ModuleConfig, ModuleSecrets> {
+		return {
+			updatedConfig: {
+				ip: context.currentConfig.ip,
+				layeredPresets: false,
+			},
+			updatedSecrets: null,
 			updatedActions: [],
 			updatedFeedbacks: [],
 		}
